@@ -1,0 +1,71 @@
+@model Sistema_ERP.Models.Role
+@{ ViewData["Title"] = "Editar Rol"; }
+
+<style>
+    .btn-digital-permissions {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+        color: #ffffff !important;
+        font-size: 0.85rem !important;
+        font-weight: 900 !important;
+        padding: 0.8rem 1.8rem !important;
+        border-radius: 0.85rem !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 8px 20px -5px rgba(8, 145, 178, 0.5) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        justify-content: center !important;
+    }
+    .btn-digital-permissions:hover {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+        box-shadow: 0 0 25px rgba(6, 182, 212, 0.6) !important;
+        transform: translateY(-2px) scale(1.03) !important;
+        color: #ffffff !important;
+    }
+</style>
+
+<div class="flex flex-col items-center justify-center min-h-[70vh]">
+    <div class="w-full max-w-lg">
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-black text-white mb-2 text-amber-400">Editar Perfil</h1>
+            <p class="text-slate-500">Modifica la información básica del rol</p>
+        </div>
+
+        <div class="glass-card p-8 border-t-4 border-amber-500">
+            <form asp-action="Editar" asp-route-id="@Model.IdRol" method="post" class="space-y-6">
+                @Html.AntiForgeryToken()
+                <input asp-for="IdRol" type="hidden" />
+                <div asp-validation-summary="ModelOnly" class="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs"></div>
+
+                <div>
+                    <label asp-for="NombreRol" class="form-label">Nombre del Rol</label>
+                    <div class="relative group">
+                        <i class="bi bi-shield-check absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-amber-400 transition-colors"></i>
+                        <input asp-for="NombreRol" class="form-input pl-11 focus:ring-amber-500" required />
+                    </div>
+                    <span asp-validation-for="NombreRol" class="text-red-500 text-[10px] mt-1 block uppercase font-bold tracking-wider"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Descripcion" class="form-label">Descripción</label>
+                    <textarea asp-for="Descripcion" class="form-input min-h-[100px] focus:ring-amber-500"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 pt-4">
+                    <button type="submit" class="btn-warning w-full justify-center py-3">Actualizar</button>
+                    <div class="flex gap-3">
+                        <a asp-action="Index" class="btn-secondary flex-1 justify-center">Cancelar</a>
+                        <a asp-action="GestionarPermisos" asp-route-id="@Model.IdRol" class="btn-digital-permissions flex-1 justify-center group">
+                            <i class="bi bi-key-fill group-hover:rotate-12 transition-transform"></i> Permisos
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

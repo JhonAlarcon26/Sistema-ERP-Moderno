@@ -1,0 +1,175 @@
+@model IEnumerable<Sistema_ERP.Models.Role>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{ ViewData["Title"] = "Roles"; }
+
+<style>
+    .btn-digital-permissions {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+        color: #ffffff !important;
+        font-size: 0.85rem !important;
+        font-weight: 900 !important;
+        padding: 0.8rem 1.8rem !important;
+        border-radius: 0.85rem !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 8px 20px -5px rgba(8, 145, 178, 0.5) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        justify-content: center !important;
+    }
+    .btn-digital-permissions:hover {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+        box-shadow: 0 0 25px rgba(6, 182, 212, 0.6) !important;
+        transform: translateY(-2px) scale(1.03) !important;
+        color: #ffffff !important;
+    }
+</style>
+
+<div class="flex items-center justify-between mb-2">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-emerald-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-shield-lock text-emerald-400 text-lg"></i>
+            </span>
+           Roles
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Gestiona los perfiles y niveles de acceso</p>
+    </div>
+    @if ((await AuthorizationService.AuthorizeAsync(User, "CrearRol")).Succeeded)
+    {
+        <a asp-action="Crear" class="btn-primary">
+            <i class="bi bi-plus-lg"></i> Nuevo Rol
+        </a>
+    }
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3 animate-pulse-subtle">
+        <i class="bi bi-check-circle-fill text-lg text-shadow-glow"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm flex items-center gap-3">
+        <i class="bi bi-info-circle-fill text-lg"></i>
+        <span>@TempData["Info"]</span>
+    </div>
+}
+
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+    <div class="md:col-span-2">
+        <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-search"></i> Filtrar por Nombre de Rol</label>
+        <input type="text" id="busquedaRoles" placeholder="Escriba para buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
+    </div>
+    <div class="flex items-end">
+        <button type="button" onclick="limpiarBusqueda()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+            <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+            Limpiar
+        </button>
+    </div>
+</div>
+
+<div id="contenedorRoles" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    @foreach (var rol in Model)
+    {
+        <div class="rol-card glass-card p-6 flex flex-col hover:border-emerald-500/50 transition-all group" data-nombre="@rol.NombreRol.ToLower()">
+            <div class="flex items-start justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/10">
+                    <i class="bi bi-shield-fill text-emerald-400 text-xl"></i>
+                </div>
+                <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    @if ((await AuthorizationService.AuthorizeAsync(User, "EditarRol")).Succeeded)
+                    {
+                        <a asp-action="Editar" asp-route-id="@rol.IdRol" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 hover:text-amber-400 hover:bg-amber-400/10 transition-all border border-slate-700" title="Editar">
+                            <i class="bi bi-pencil-fill text-xs"></i>
+                        </a>
+                    }
+                    @if (rol.NombreRol != "Administrador" && (await AuthorizationService.AuthorizeAsync(User, "EliminarRol")).Succeeded)
+                    {
+                        <form asp-action="Eliminar" asp-route-id="@rol.IdRol" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition-all" title="Eliminar Rol">
+                                <i class="bi bi-trash-fill text-xs"></i>
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <h3 class="role-name text-lg font-bold text-white mb-1">@rol.NombreRol</h3>
+            <p class="text-slate-500 text-sm mb-4 line-clamp-2">@(rol.Descripcion ?? "Sin descripción")</p>
+
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="badge badge-blue">
+                    <i class="bi bi-people-fill mr-1.5"></i>@rol.Usuarios.Count Usuarios
+                </span>
+                <span class="badge badge-amber">
+                    <i class="bi bi-key-fill mr-1.5"></i>@rol.IdPermisos.Count Permisos
+                </span>
+            </div>
+
+            <div class="mt-auto space-y-3">
+                <div class="flex flex-wrap gap-1.5 mb-3 min-h-[50px]">
+                    @foreach (var permiso in rol.IdPermisos.Take(3))
+                    {
+                        <span class="px-2 py-0.5 rounded-md bg-slate-800/50 text-slate-400 text-[10px] font-medium border border-slate-700/50 tracking-wider">@permiso.NombrePermiso.ToUpper()</span>
+                    }
+                    @if (rol.IdPermisos.Count > 3)
+                    {
+                        <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20 tracking-wider">+@(rol.IdPermisos.Count - 3) MÁS</span>
+                    }
+                </div>
+                
+                @if ((await AuthorizationService.AuthorizeAsync(User, "AsignarPermisos")).Succeeded)
+                {
+                    <a asp-action="GestionarPermisos" asp-route-id="@rol.IdRol" class="btn-digital-permissions w-full justify-center group py-2">
+                        <i class="bi bi-key-fill group-hover:rotate-12 transition-transform"></i> PERMISOS
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="col-span-full py-20 glass-card flex flex-col items-center justify-center text-slate-500">
+            <i class="bi bi-shield-x text-5xl mb-4 opacity-20"></i>
+            <p>No se encontraron roles registrados</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#busquedaRoles').on('keyup', function() {
+                var valor = $(this).val().toLowerCase();
+                $('.rol-card').each(function() {
+                    var nombre = $(this).data('nombre');
+                    $(this).toggle(nombre.indexOf(valor) > -1);
+                });
+            });
+        });
+
+        function limpiarBusqueda() {
+            $('#busquedaRoles').val('');
+            $('.rol-card').show();
+        }
+    </script>
+}

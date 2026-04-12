@@ -1,0 +1,397 @@
+@model IEnumerable<Sistema_ERP.Models.InventarioProducto>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Gestión de Productos";
+}
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-indigo-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-box-seam text-indigo-400 text-lg"></i>
+            </span>
+            Producto
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Administra el diccionario de productos del sistema</p>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-4 sm:mt-0">
+        @if ((await AuthorizationService.AuthorizeAsync(User, "CrearProducto")).Succeeded)
+        {
+            <button onclick="openModal('modalGestionProducto')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-500/25 font-bold flex items-center gap-2 transform hover:-translate-y-0.5">
+                <i class="bi bi-plus-lg text-lg"></i> Registrar Producto
+            </button>
+        }
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3 animate-pulse-subtle">
+        <i class="bi bi-check-circle-fill text-lg"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm flex items-center gap-3">
+        <i class="bi bi-info-circle-fill text-lg"></i>
+        <span>@TempData["Info"]</span>
+    </div>
+}
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-hash"></i> ID</label>
+            <input type="text" id="filtroId" placeholder="Ej. 1..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-qr-code"></i> Código SN</label>
+            <input type="text" id="filtroCodigo" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-box-seam"></i> Producto</label>
+            <input type="text" id="filtroProducto" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-tag"></i> Categoría</label>
+            <input type="text" id="filtroCategoria" placeholder="Ej. Cámara..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="tablaProductos">
+            <thead>
+                <tr class="border-b border-slate-700/50">
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">#</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Código SN</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Producto</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Categoría</th>
+                    <th class="text-center px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr class="table-row border-t border-slate-700/30">
+                        <td class="px-5 py-3 text-slate-500 text-xs font-mono">@p.IdProducto</td>
+                        <td class="px-5 py-3 font-mono text-xs text-slate-400">
+                            @(string.IsNullOrEmpty(p.CodigoSN) ? "N/A" : p.CodigoSN)
+                        </td>
+                        <td class="px-5 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="bi bi-box2 text-indigo-400 text-xs"></i>
+                                </div>
+                                <span class="text-white font-medium">@p.NombreProducto</span>
+                            </div>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="text-slate-500 text-[10px] uppercase font-bold tracking-tighter">@p.Categoria</span>
+                        </td>
+                        <td class="px-5 py-3 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EditarProducto")).Succeeded)
+                                {
+                                    <a asp-action="EditarProducto" asp-route-id="@p.IdProducto"
+                                       class="w-8 h-8 flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-all" title="Editar">
+                                        <i class="bi bi-pencil-fill text-xs"></i>
+                                    </a>
+                                }
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarProducto")).Succeeded)
+                                {
+                                    <form asp-action="EliminarProducto" asp-route-id="@p.IdProducto" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar">
+                                            <i class="bi bi-trash-fill text-xs"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalPreview" class="modal-overlay hidden z-[110]">
+    <div class="modal-backdrop" onclick="closeModal('modalPreview')"></div>
+    <div class="relative glass-card p-0 w-full shadow-2xl mx-auto overflow-hidden" style="max-width:520px">
+        
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-slate-800/60">
+            <div class="flex items-center gap-3">
+                <span class="w-9 h-9 bg-cyan-500/20 rounded-xl flex items-center justify-center">
+                    <i class="bi bi-box-seam text-cyan-400"></i>
+                </span>
+                <div>
+                    <h3 class="text-white font-bold text-base" id="prvNombre">---</h3>
+                    <p class="text-slate-500 text-xs" id="prvCategoria">---</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModal('modalPreview')" class="text-slate-500 hover:text-white transition-colors">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-4">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                    <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Código SN</p>
+                    <p class="text-white font-mono font-semibold" id="prvCodigo">---</p>
+                </div>
+                <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                    <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Stock Actual</p>
+                    <p class="font-bold text-xl" id="prvStock">0</p>
+                </div>
+            </div>
+            
+            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 space-y-3">
+                <p class="text-slate-400 text-xs uppercase tracking-wider font-semibold">Precios</p>
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                        <p class="text-slate-500 text-xs mb-1">Compra</p>
+                        <p class="text-green-400 font-semibold" id="prvPrecioCompra">Bs. 0,00</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500 text-xs mb-1">Referencia</p>
+                        <p class="text-indigo-400 font-semibold" id="prvPrecioRef">Bs. 0,00</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500 text-xs mb-1">Venta</p>
+                        <p class="text-amber-400 font-semibold" id="prvPrecioVenta">Bs. 0,00</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50" id="prvDescDiv">
+                <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Descripción</p>
+                <p class="text-slate-300 text-sm" id="prvDescripcion">---</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-700/50 bg-slate-800/30">
+            <p class="text-slate-600 text-xs">STC Services · @DateTime.Now.Year</p>
+            <div class="flex gap-2 w-full">
+                <button type="button" onclick="closeModal('modalPreview')" class="btn-secondary py-2 px-4 text-sm w-full block text-center">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="modalGestionProducto" class="modal-overlay hidden z-[100]">
+    <div class="modal-backdrop" onclick="closeModal('modalGestionProducto')"></div>
+    <div class="modal-box flex flex-col p-6 max-h-[90vh] overflow-hidden shadow-2xl mx-auto" style="max-width: 650px;" id="modalBoxGestion">
+            
+            <div class="flex items-center justify-between mb-5 mt-2">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <span class="text-indigo-400">
+                        <i class="bi bi-box-seam"></i>
+                    </span>
+                    Registro de Nuevo Producto
+                </h3>
+                <button type="button" onclick="closeModal('modalGestionProducto')" class="text-slate-500 hover:text-white transition-colors"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            
+            <form id="unifiedForm" method="post" action="/Productos/CrearProducto" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
+                @Html.AntiForgeryToken()
+                
+                <div class="flex-1 overflow-y-auto space-y-4 pr-2" style="scrollbar-width: thin; scrollbar-color: #4f46e5 transparent;">
+
+                    
+                    <div class="bg-transparent rounded-xl p-0">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="sectionDatosProducto">
+                            <div class="sm:col-span-2 relative group">
+                                <label class="form-label text-xs uppercase tracking-wider">Nombre del Producto</label>
+                                <input type="text" name="NombreProducto" id="inpNombre" class="form-input text-sm py-2" required placeholder="Ej: Cámara de Seguridad PTZ">
+                            </div>
+                            <div class="relative group">
+                                <label class="form-label text-xs uppercase tracking-wider">Categoría</label>
+                                <select name="Categoria" id="inpCategoria" class="form-input text-sm py-2 select-searchable">
+                                    <option value="">-- Seleccionar Categoría --</option>
+                                    @if(ViewBag.Categorias != null)
+                                    {
+                                        foreach(var cat in ViewBag.Categorias)
+                                        {
+                                            <option value="@cat.Nombre">@cat.Nombre</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="relative group">
+                                <label class="form-label text-xs uppercase tracking-wider">Código SN</label>
+                                <input type="text" name="CodigoSN" id="inpSN" class="form-input text-sm py-2" placeholder="Opcional">
+                            </div>
+                            <div class="relative group">
+                                <label class="form-label text-xs uppercase tracking-wider text-amber-400">Stock Inicial (Opcional)</label>
+                                <input type="number" name="Stock" id="inpStock" class="form-input text-sm py-2 border-amber-500/30" placeholder="0">
+                            </div>
+                            <div class="sm:col-span-2 relative group mt-2">
+                                <label class="form-label text-xs uppercase tracking-wider text-slate-300">Imagen del Producto (Opcional)</label>
+                                <div class="flex items-center gap-4 mt-1">
+                                    <div class="w-16 h-16 rounded-xl bg-slate-900/50 border border-slate-700/50 overflow-hidden flex-shrink-0 flex items-center justify-center shadow-inner" style="width: 64px; height: 64px; min-width: 64px; overflow: hidden;">
+                                        <img id="imgPreviewCreate" src="/img/no-image.png" class="w-full h-full object-cover text-slate-500" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview"/>
+                                    </div>
+                                    <div class="flex-1 relative min-w-0"> 
+                                        <label for="inpImagen" class="cursor-pointer flex items-center justify-between w-full px-4 py-3 bg-slate-900/40 hover:bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 transition-all focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden">
+                                            <div class="flex items-center gap-2 overflow-hidden flex-1">
+                                                <i class="bi bi-image text-indigo-400 flex-shrink-0"></i>
+                                                <span id="txtFileNameCreate" class="truncate text-slate-400">Seleccionar imagen pinchando aquí...</span>
+                                            </div>
+                                            <span class="bg-indigo-600/20 text-indigo-300 text-xs px-2 py-1 rounded-md border border-indigo-500/30 flex-shrink-0 ml-2">Explorar</span>
+                                        </label>
+                                        <input type="file" name="imagen" id="inpImagen" accept="image/*" class="w-full absolute inset-0 opacity-0 cursor-pointer" onchange="previewImagen(this, 'imgPreviewCreate', 'txtFileNameCreate')">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-indigo-900/10 rounded-xl p-5 border border-indigo-500/20 mt-4">
+                        <h4 class="text-indigo-400 font-bold mb-4 flex items-center gap-2"><i class="bi bi-tag"></i> Datos de Precios</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="relative group">
+                                <label class="form-label text-xs uppercase tracking-wider text-green-400">Precio Compra</label>
+                                <input type="number" step="0.01" name="PrecioCompra" id="inpCosto" class="form-input text-sm py-2 border-green-500/30" required placeholder="0.00">
+                            </div>
+                            <div class="relative group">
+                                <label class="form-label text-xs uppercase tracking-wider text-indigo-400">Precio Interno</label>
+                                <input type="number" step="0.01" name="PrecioInterno" id="inpRef" class="form-input text-sm py-2 border-indigo-500/30" required placeholder="0.00">
+                            </div>
+                            <div class="relative group">
+                                <label class="form-label text-xs uppercase tracking-wider text-amber-400">Precio Venta</label>
+                                <input type="number" step="0.01" name="PrecioVentaSugerido" id="inpVenta" class="form-input text-sm py-2 border-amber-500/30" required placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-2 relative group mt-4">
+                        <label class="form-label text-xs uppercase tracking-wider text-slate-300">Descripción</label>
+                        <textarea name="Descripcion" id="inpDesc" rows="3" class="form-input text-sm py-2 bg-slate-900/50 border-slate-700/50" placeholder="Descripción..."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex gap-3 justify-end shrink-0">
+                    <button type="button" onclick="closeModal('modalGestionProducto')" class="btn-secondary px-6">Cancelar</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-xl transition-all shadow-lg font-bold">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+    </div>
+</div>
+
+<style>
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active{
+        -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
+        -webkit-text-fill-color: white !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+</style>
+
+@section Scripts {
+<script>
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        const box = document.getElementById('modalBoxGestion');
+        modal.classList.remove('hidden');
+
+        setTimeout(() => {
+            if(box) {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }
+        }, 10);
+        
+        if (id === 'modalGestionProducto') {
+
+        }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        const box = document.getElementById('modalBoxGestion');
+        
+        if(box) {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+        }
+        
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+    
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(modal => {
+                closeModal(modal.id);
+            });
+        }
+    });
+
+
+    $(document).ready(function() {
+        var table = $('#tablaProductos').DataTable({
+            dom: 'rtip',
+            pageLength: 10,
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
+            },
+            order: [[0, 'desc']]
+        });
+
+        $('#filtroId').on('keyup', function() { table.column(0).search(this.value).draw(); });
+        $('#filtroCodigo').on('keyup', function() { table.column(1).search(this.value).draw(); });
+        $('#filtroProducto').on('keyup', function() { table.column(2).search(this.value).draw(); });
+        $('#filtroCategoria').on('keyup', function() { table.column(3).search(this.value).draw(); });
+    });
+
+    function limpiarFiltros() {
+        $('#filtroId, #filtroCodigo, #filtroProducto, #filtroCategoria').val('');
+        var table = $('#tablaProductos').DataTable();
+        table.search('').columns().search('').draw();
+    }
+
+    function previewImagen(input, imgId, textId) {
+        var textElem = document.getElementById(textId);
+        if (input.files && input.files[0]) {
+            if(textElem) textElem.textContent = input.files[0].name;
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById(imgId).src = e.target.result;
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            if(textElem) textElem.textContent = "Seleccionar imagen pinchando aquí...";
+            document.getElementById(imgId).src = '/img/no-image.png';
+        }
+    }
+</script>
+}

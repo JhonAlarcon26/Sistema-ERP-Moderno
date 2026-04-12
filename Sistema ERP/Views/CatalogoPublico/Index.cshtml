@@ -1,0 +1,231 @@
+@model Sistema_ERP.Models.CatalogosViewModel
+@{
+
+
+    ViewData["Title"] = "Catálogo Público";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div>
+        <h1 class="text-3xl font-bold text-white tracking-tight">Catálogo</h1>
+        <p class="text-slate-500 mt-2">Nuestros productos y servicios disponibles para usted.</p>
+    </div>
+    
+    <div class="flex gap-2">
+        <a asp-action="Presentacion" target="_blank" class="btn-primary bg-slate-800 hover:bg-slate-700 text-white font-medium px-5 py-2.5 rounded-xl inline-flex items-center gap-2 transition-all">
+            <i class="bi bi-display text-xl"></i>
+            <span>Vista Interna</span>
+        </a>
+        <button id="btnGenerarLink" class="btn-primary bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl inline-flex items-center gap-2 transition-all hover:scale-105 group">
+            <i class="bi bi-share-fill text-lg group-hover:text-emerald-400 transition-colors"></i>
+            <span>Generar Link de Presentación</span>
+        </button>
+    </div>
+</div>
+
+<div id="modalLink" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="cerrarModalLink()"></div>
+    <div class="relative bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl max-w-lg w-full">
+        <h2 class="text-2xl font-bold text-white mb-4">Link de Presentación Generado</h2>
+        <p class="text-slate-400 mb-6 text-sm">Este link es público y permite ver el catálogo sin iniciar sesión. Expira en 7 días.</p>
+        
+        <div class="flex gap-2 p-3 bg-slate-950 rounded-2xl border border-slate-800 mb-6">
+            <input type="text" id="inputUrl" readonly class="bg-transparent border-none text-indigo-400 flex-1 text-sm focus:ring-0" />
+            <button onclick="copiarUrl()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2">
+                <i class="bi bi-copy"></i>
+                <span>Copiar</span>
+            </button>
+        </div>
+        
+        <div class="flex justify-end">
+            <button onclick="cerrarModalLink()" class="btn-secondary py-2 px-6">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="flex gap-4 mb-6 border-b border-slate-800 pb-px font-medium">
+    <button onclick="showTab('productos')" id="tab-productos" class="pb-3 text-indigo-400 border-b-2 border-indigo-500 transition-colors">Productos</button>
+    <button onclick="showTab('servicios')" id="tab-servicios" class="pb-3 text-slate-500 hover:text-slate-300 border-b-2 border-transparent transition-colors">Servicios</button>
+</div>
+
+
+<div id="content-productos" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    @if (!Model.Productos.Any())
+    {
+        <div class="col-span-full py-12 text-center text-slate-500">
+            <i class="bi bi-box-seam text-4xl mb-3 block opacity-50"></i>
+            <p>No hay productos disponibles por el momento.</p>
+        </div>
+    }
+    @foreach (var p in Model.Productos)
+    {
+        <div class="glass-card flex flex-col overflow-hidden group">
+            <div class="h-48 bg-slate-800/50 flex items-center justify-center p-4">
+                <img class="max-h-full object-contain rounded-xl cursor-pointer hover:scale-105 transition-transform" 
+                     src="@(string.IsNullOrEmpty(p.ImagenUrl) ? "/img/no-image.png" : p.ImagenUrl)" 
+                     alt="@p.NombreProducto" 
+                     onclick="openLightbox(this.src)" />
+            </div>
+            <div class="p-5 flex flex-col flex-1">
+                <span class="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">@(p.Categoria ?? "General")</span>
+                <h3 class="text-white font-bold text-lg mb-2">@p.NombreProducto</h3>
+                <p class="text-slate-400 text-sm mb-4 line-clamp-2 flex-1">@(p.Descripcion ?? "Sin descripción.")</p>
+                <div class="flex items-end justify-between mt-auto">
+                    <span class="text-2xl font-black text-emerald-400">Bs. @p.PrecioVentaSugerido.ToString("N2")</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+<div id="content-servicios" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
+    @if (!Model.Servicios.Any())
+    {
+        <div class="col-span-full py-12 text-center text-slate-500">
+            <i class="bi bi-tools text-4xl mb-3 block opacity-50"></i>
+            <p>No hay servicios disponibles por el momento.</p>
+        </div>
+    }
+    @foreach (var s in Model.Servicios)
+    {
+        <div class="glass-card flex flex-col overflow-hidden group">
+            <div class="h-48 bg-slate-800/50 flex items-center justify-center p-4">
+                <img class="max-h-full object-contain rounded-xl cursor-pointer hover:scale-105 transition-transform" 
+                     src="@(string.IsNullOrEmpty(s.ImagenUrl) ? "/img/no-image.png" : s.ImagenUrl)" 
+                     alt="@s.NombreServicio" 
+                     onclick="openLightbox(this.src)" />
+            </div>
+            <div class="p-5 flex flex-col flex-1">
+                <span class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-1">@(s.Categoria ?? "Servicio Técnico")</span>
+                <h3 class="text-white font-bold text-lg mb-2">@s.NombreServicio</h3>
+                <p class="text-slate-400 text-sm mb-4 line-clamp-3 flex-1">@(s.Descripcion ?? "Servicio profesional y garantizado.")</p>
+                <div class="flex items-end justify-between mt-auto">
+                    <span class="text-2xl font-black text-amber-400">Bs. @s.PrecioVenta.ToString("N2")</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+<div id="lightboxModal" class="modal-overlay hidden z-[200]">
+    <div class="modal-backdrop bg-black/90" onclick="closeLightbox()"></div>
+    <div class="relative w-full h-full flex items-center justify-center p-4">
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white hover:text-red-400 transition-colors z-10 w-12 h-12 flex items-center justify-center bg-black/50 rounded-full">
+            <i class="bi bi-x-lg text-2xl"></i>
+        </button>
+        <img id="lightboxImg" src="" class="max-w-full max-h-full rounded-lg shadow-2xl" alt="Imagen ampliada" />
+    </div>
+</div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+<script>
+    function showTab(tabName) {
+        document.getElementById('content-productos').classList.add('hidden');
+        document.getElementById('content-servicios').classList.add('hidden');
+        
+        document.getElementById('tab-productos').className = 'pb-3 text-slate-500 hover:text-slate-300 border-b-2 border-transparent transition-colors';
+        document.getElementById('tab-servicios').className = 'pb-3 text-slate-500 hover:text-slate-300 border-b-2 border-transparent transition-colors';
+
+        document.getElementById('content-' + tabName).classList.remove('hidden');
+        
+        if (tabName === 'productos') {
+            document.getElementById('tab-' + tabName).className = 'pb-3 text-indigo-400 border-b-2 border-indigo-500 transition-colors';
+        } else {
+            document.getElementById('tab-' + tabName).className = 'pb-3 text-amber-400 border-b-2 border-amber-500 transition-colors';
+        }
+    }
+
+
+    function openLightbox(src) {
+        document.getElementById('lightboxImg').src = src;
+        document.getElementById('lightboxModal').classList.remove('hidden');
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightboxModal').classList.add('hidden');
+        document.getElementById('lightboxImg').src = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('btnGenerarLink');
+        if (btn) {
+            btn.addEventListener('click', async () => {
+                console.log('Botón de generar link presionado');
+                const originalContent = btn.innerHTML;
+                
+                try {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin text-lg"></i> <span>Generando...</span>';
+                    
+                    const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const token = tokenElement ? tokenElement.value : '';
+                    
+                    console.log('Enviando petición a /CatalogoPublico/GenerarEnlace...');
+                    const response = await fetch('/CatalogoPublico/GenerarEnlace', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Error en la respuesta del servidor: ' + response.status);
+
+                    const data = await response.json();
+                    console.log('Respuesta recibida:', data);
+                    
+                    if (data.success) {
+                        document.getElementById('inputUrl').value = data.url;
+                        const modal = document.getElementById('modalLink');
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    } else {
+                        throw new Error(data.message || 'No se pudo generar el enlace');
+                    }
+                } catch (error) {
+                    console.error('Error detallado:', error);
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de Conexión',
+                            text: 'No pudimos generar el enlace. Por favor, verifica tu conexión o intenta más tarde.',
+                            background: '#0f172a',
+                            color: '#fff',
+                            confirmButtonColor: '#6366f1'
+                        });
+                    } else {
+                        alert('Error: ' + error.message);
+                    }
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                }
+            });
+        }
+    });
+
+    function cerrarModalLink() {
+        document.getElementById('modalLink').classList.add('hidden');
+        document.getElementById('modalLink').classList.remove('flex');
+    }
+
+    function copiarUrl() {
+        const input = document.getElementById('inputUrl');
+        input.select();
+        document.execCommand('copy');
+        alert('Link copiado al portapapeles');
+    }
+
+    document.addEventListener('keydown', e => { 
+        if(e.key === 'Escape') {
+            closeLightbox();
+            cerrarModalLink();
+        }
+    });
+</script>
+}

@@ -1,0 +1,339 @@
+@model ReporteVentaViewModel
+@{
+    ViewData["Title"] = "Reporte de Ventas";
+}
+
+<div class="flex flex-col gap-6">
+    
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                <span class="w-10 h-10 bg-sky-600/20 rounded-xl flex items-center justify-center">
+                    <i class="bi bi-graph-up-arrow text-sky-400 text-xl"></i>
+                </span>
+                Reporte de Ventas
+            </h1>
+            <p class="text-slate-500 text-sm mt-1">Análisis de ingresos, costos y rentabilidad operacional.</p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <form method="get" asp-action="Venta" class="flex items-center gap-2">
+                <select name="periodo" onchange="this.form.submit()" class="form-input !py-2 !px-3 font-medium min-w-[150px]">
+                    <option value="Dia" selected="@(Model.Periodo == "Dia")">Hoy</option>
+                    <option value="Semana" selected="@(Model.Periodo == "Semana")">Esta Semana</option>
+                    <option value="Mes" selected="@(Model.Periodo == "Mes")">Este Mes</option>
+                    <option value="1_Año" selected="@(Model.Periodo == "1_Año")">Hace 1 Año</option>
+                    <option value="2_Años" selected="@(Model.Periodo == "2_Años")">Hace 2 Años</option>
+                    <option value="3_Años" selected="@(Model.Periodo == "3_Años")">Hace 3 Años</option>
+                    <option value="4_Años" selected="@(Model.Periodo == "4_Años")">Hace 4 Años</option>
+                    <option value="5_Años" selected="@(Model.Periodo == "5_Años")">Hace 5 Años</option>
+                </select>
+            </form>
+            
+            <div class="h-8 w-px bg-slate-800 mx-1"></div>
+            
+            <a asp-action="ExportarVentaExcel" asp-route-periodo="@Model.Periodo" class="btn-secondary !bg-emerald-600/10 !text-emerald-400 !border-emerald-600/20 hover:!bg-emerald-600 hover:!text-white">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <a asp-action="ExportarVentaPDF" asp-route-periodo="@Model.Periodo" class="btn-secondary !bg-red-600/10 !text-red-400 !border-red-600/20 hover:!bg-red-600 hover:!text-white">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </a>
+        </div>
+    </div>
+
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat-card">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                <i class="bi bi-cash-stack text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Ingresos Totales</p>
+                <h3 class="text-2xl font-bold text-white">@Model.TotalIngresos.ToString("C")</h3>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-400">
+                <i class="bi bi-box-arrow-right text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Costo Estimado</p>
+                <h3 class="text-2xl font-bold text-white">@Model.TotalCostos.ToString("C")</h3>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                <i class="bi bi-piggy-bank text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Ganancia Bruta</p>
+                <h3 class="text-2xl font-bold text-white">@Model.GananciaTotal.ToString("C")</h3>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-900/40">
+                <span class="text-lg font-bold">@Model.MargenPromedio.ToString("N1")%</span>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Margen Promedio</p>
+                <h3 class="text-sm font-semibold text-slate-300">Sobre la Facturación</h3>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="glass-card p-6 relative group/chart">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-white">Ingresos por Período</h3>
+            <div class="flex items-center gap-2">
+                <button id="resetZoomBtn" title="Reiniciar Zoom" 
+                        class="hidden group-hover/chart:flex w-8 h-8 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all border border-indigo-500/30">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+                <span class="text-xs text-slate-500">Visualización de Ventas</span>
+            </div>
+        </div>
+        <div class="h-[300px] cursor-crosshair">
+            <canvas id="ventaTrendChart"></canvas>
+        </div>
+    </div>
+
+    <div class="glass-card overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/30">
+            <h3 class="text-lg font-semibold text-white">Detalle de Operaciones</h3>
+            <div class="flex items-center gap-2">
+                <button onclick="limpiarFiltros()" class="btn-secondary !py-1.5 !px-3 !text-xs !bg-slate-700/50 hover:!bg-slate-600">
+                    <i class="bi bi-eraser"></i> Limpiar
+                </button>
+            </div>
+        </div>
+
+        
+        <div class="p-4 bg-slate-900/30 border-b border-slate-700/50">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Cliente / ID</label>
+                    <div class="relative group">
+                        <i class="bi bi-person absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs transition-colors group-focus-within:text-indigo-400"></i>
+                        <input type="text" id="filtroCliente" placeholder="Nombre o #factura..." 
+                               class="w-full bg-slate-950/50 border-slate-700/50 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-600 transition-all">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Fecha</label>
+                    <div class="relative group">
+                        <input type="Date" id="filtroFecha" 
+                               class="w-full bg-slate-950/50 border-slate-700/50 rounded-xl py-2 px-4 text-xs text-white focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all [color-scheme:Dark] cursor-pointer">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Importe</label>
+                    <div class="relative group">
+                        <i class="bi bi-currency-dollar absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs transition-colors group-focus-within:text-amber-400"></i>
+                        <input type="text" id="filtroImporte" placeholder="Monto mayor a..." 
+                               class="w-full bg-slate-950/50 border-slate-700/50 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 placeholder:text-slate-600 transition-all">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse" id="ventasTable">
+                <thead>
+                    <tr class="bg-slate-900/40 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+                        <th class="px-6 py-4">ID</th>
+                        <th class="px-6 py-4">Cliente</th>
+                        <th class="px-6 py-4">Fecha</th>
+                        <th class="px-6 py-4 text-right">Ingreso Bruto</th>
+                        <th class="px-6 py-4 text-right">Costo Est.</th>
+                        <th class="px-6 py-4 text-right">Margen</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/50">
+                    @foreach (var item in Model.Detalles)
+                    {
+                        <tr class="table-row">
+                            <td class="px-6 py-4 text-slate-400 font-mono text-sm">#@item.IdVenta</td>
+                            <td class="px-6 py-4">
+                                <span class="text-white font-medium">@item.Cliente</span>
+                            </td>
+                            <td class="px-6 py-4 text-slate-400 text-sm">@item.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="px-6 py-4 text-right font-medium text-emerald-400">@item.ImporteBruto.ToString("C")</td>
+                            <td class="px-6 py-4 text-right text-slate-400 font-mono text-sm">@item.CostoEstimado.ToString("C")</td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="badge @(item.Margen >= 0 ? "badge-green" : "badge-red")">
+                                    @item.Margen.ToString("C")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <script>
+        const chartLabels = @Html.Raw(Json.Serialize(Model.ChartData.Select(d => d.Label)));
+        const chartValues = @Html.Raw(Json.Serialize(Model.ChartData.Select(d => d.Value)));
+
+
+        const crosshairPlugin = {
+            id: 'crosshair',
+            afterDraw: (chart) => {
+                if (chart.tooltip?._active?.length) {
+                    const activePoint = chart.tooltip._active[0];
+                    const ctx = chart.ctx;
+                    const x = activePoint.element.x;
+                    const topY = chart.scales.y.top;
+                    const bottomY = chart.scales.y.bottom;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, topY);
+                    ctx.lineTo(x, bottomY);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        };
+
+        const ctx = document.getElementById('ventaTrendChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            plugins: [crosshairPlugin],
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Ingresos por Venta',
+                    data: chartValues,
+                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                    borderColor: '#10b981',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                    pointHitRadius: 50
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: '#1e293b',
+                        titleColor: '#94a3b8',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(16, 185, 129, 0.3)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Monto: Bs. ' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    },
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: 'x',
+                            threshold: 10
+                        },
+                        zoom: {
+                            wheel: { enabled: true },
+                            pinch: { enabled: true },
+                            mode: 'x',
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                        ticks: { 
+                            color: '#64748b', 
+                            font: { size: 10 },
+                            callback: function(value) { return 'Bs. ' + value.toLocaleString(); }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { 
+                            color: '#64748b', 
+                            font: { size: 10 },
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 12
+                        }
+                    }
+                }
+            }
+        });
+
+        document.getElementById('resetZoomBtn').addEventListener('click', () => {
+            chart.resetZoom();
+        });
+
+        const filtroCliente = document.getElementById('filtroCliente');
+        const filtroFecha = document.getElementById('filtroFecha');
+        const filtroImporte = document.getElementById('filtroImporte');
+        const tableRows = document.querySelectorAll('#ventasTable tbody tr');
+
+        function filterTable() {
+            const clienteText = filtroCliente.value.toLowerCase();
+            const fechaVal = filtroFecha.value;
+            const importeMin = parseFloat(filtroImporte.value) || 0;
+
+            tableRows.forEach(row => {
+                const id = row.cells[0].innerText.toLowerCase();
+                const cliente = row.cells[1].innerText.toLowerCase();
+                const fechaTexto = row.cells[2].innerText.split(' ')[0];
+                
+
+                const partes = fechaTexto.split('/');
+                const fechaTablaIso = partes.length === 3 ? `${partes[2]}-${partes[1]}-${partes[0]}` : '';
+
+
+                const importeTexto = row.cells[3].innerText.replace('Bs.', '').replace(/\./g, '').replace(',', '.').trim();
+                const importe = parseFloat(importeTexto) || 0;
+
+                const matchCliente = !clienteText || id.includes(clienteText) || cliente.includes(clienteText);
+                const matchFecha = !fechaVal || fechaTablaIso === fechaVal;
+                const matchImporte = !filtroImporte.value || importe >= importeMin;
+
+                row.style.display = (matchCliente && matchFecha && matchImporte) ? '' : 'none';
+            });
+        }
+
+        function limpiarFiltros() {
+            filtroCliente.value = '';
+            filtroFecha.value = '';
+            filtroImporte.value = '';
+            filterTable();
+        }
+
+        filtroCliente.addEventListener('input', filterTable);
+        filtroFecha.addEventListener('input', filterTable);
+        filtroImporte.addEventListener('input', filterTable);
+    </script>
+}

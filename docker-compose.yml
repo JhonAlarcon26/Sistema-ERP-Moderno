@@ -1,0 +1,39 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: erp-sql-server
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - erp-network
+    restart: always
+
+  app:
+    build:
+      context: ./Sistema ERP
+      dockerfile: Dockerfile
+    container_name: erp-web-app
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db;Database=erp_inventario;User Id=Sa;Password=${MSSQL_SA_PASSWORD};Encrypt=False;TrustServerCertificate=True
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+    ports:
+      - "8080:8080"
+    networks:
+      - erp-network
+    restart: always
+
+networks:
+  erp-network:
+    driver: bridge
+
+volumes:
+  sql_data:

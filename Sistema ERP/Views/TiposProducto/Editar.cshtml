@@ -1,0 +1,33 @@
+@model Sistema_ERP.Models.TipoProducto
+@{ ViewData["Title"] = "Editar Tipo de Producto"; }
+
+<div class="flex items-center gap-4 mb-8">
+    <a asp-action="Index" class="text-slate-400 hover:text-white transition-colors">
+        <i class="bi bi-arrow-left text-xl"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-bold text-white">Editar Tipo de Producto</h1>
+        <p class="text-slate-500 text-sm mt-1">Modifica el nombre del tipo</p>
+    </div>
+</div>
+
+<div class="glass-card max-w-md mx-auto p-6">
+    <form asp-action="Editar" method="post" class="flex flex-col gap-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="IdTipoProducto" />
+        <div>
+            <label class="form-label text-xs uppercase tracking-wider">Nombre del Tipo *</label>
+            <input asp-for="Nombre" class="form-input" required placeholder="Nombre del tipo de producto" />
+            <span asp-validation-for="Nombre" class="text-red-400 text-xs mt-1 block"></span>
+        </div>
+        <div>
+            <label class="form-label text-xs uppercase tracking-wider">Descripción</label>
+            <input asp-for="Descripcion" class="form-input" placeholder="Opcional: Detalles del tipo de producto" />
+            <span asp-validation-for="Descripcion" class="text-red-400 text-xs mt-1 block"></span>
+        </div>
+        <div class="flex gap-3 pt-2">
+            <a asp-action="Index" class="btn-secondary flex-1 justify-center">Cancelar</a>
+            <button type="submit" class="btn-primary flex-1 justify-center"><i class="bi bi-check-lg"></i> Guardar Cambios</button>
+        </div>
+    </form>
+</div>

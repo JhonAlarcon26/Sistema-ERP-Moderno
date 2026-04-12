@@ -1,0 +1,189 @@
+@model IEnumerable<Sistema_ERP.Models.VisitaTecnica>
+@{
+    ViewData["Title"] = "Lista de Visitas";
+}
+
+<div class="p-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-black text-white tracking-tight">Lista de <span class="text-indigo-500">Tareas</span></h1>
+            <p class="text-slate-400 mt-1">Gestión administrativa de visitas técnicas.</p>
+        </div>
+        <div class="flex gap-2">
+            <a asp-action="Index" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 border border-slate-700 shadow-xl">
+                 <i class="bi bi-calendar3"></i> Ver Calendario
+            </a>
+        </div>
+    </div>
+    
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 p-4 bg-slate-800/40 rounded-2xl border border-slate-800 shadow-xl">
+        <div>
+            <label class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1.5 block leading-none"><i class="bi bi-hash text-indigo-500 mr-1"></i> ID</label>
+            <input type="text" id="filtroId" placeholder="Ej. 1..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none">
+        </div>
+
+        <div>
+            <label class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1.5 block leading-none"><i class="bi bi-calendar-Date text-indigo-500 mr-1"></i> Fecha</label>
+            <input type="Date" id="filtroFecha" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none">
+        </div>
+
+        <div>
+            <label class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1.5 block leading-none"><i class="bi bi-person text-indigo-500 mr-1"></i> Cliente / Empresa</label>
+            <input type="text" id="filtroCliente" placeholder="Buscar..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none">
+        </div>
+
+        <div>
+            <label class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1.5 block leading-none"><i class="bi bi-person-gear text-indigo-500 mr-1"></i> Técnico</label>
+            <input type="text" id="filtroTecnico" placeholder="Buscar..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none">
+        </div>
+
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 group shadow-lg">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    
+    <div class="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table id="tablaVisitas" class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-800/40 border-b border-slate-800">
+                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">#</th>
+                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Fecha y Hora</th>
+                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Cliente / Empresa</th>
+                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Técnico</th>
+                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-center w-28">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/50">
+                    @foreach (var item in Model)
+                    {
+                        <tr class="hover:bg-slate-800/10 transition-colors border-b border-slate-800">
+                            <td class="px-6 py-4 text-indigo-400 font-black text-xs font-mono">@item.IdVisita</td>
+                            <td class="px-6 py-4" Data-order="@item.FechaVisita.ToString("yyyyMMddHHmm")">
+                                <div class="flex flex-col">
+                                    <span class="text-white font-bold text-sm">@item.FechaVisita.ToString("dd/MM/yyyy")</span>
+                                    <span class="text-slate-500 text-[10px] uppercase font-black">@item.FechaVisita.ToString("hh:mm tt")</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-white font-black text-sm">@item.IdClienteNavigation?.NombreRazonSocial</p>
+                                @if (!string.IsNullOrEmpty(item.Empresa))
+                                {
+                                    <p class="text-indigo-400 text-[10px] font-bold uppercase tracking-tighter"><i class="bi bi-building"></i> @item.Empresa</p>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 bg-indigo-500/10 rounded-lg border border-indigo-500/10 flex items-center justify-center text-indigo-500 text-xs font-black shadow-inner">
+                                        @(item.IdTecnicoNavigation?.NombreCompleto.Substring(0, 1) ?? "T")
+                                    </div>
+                                    <span class="text-slate-300 text-sm font-medium">@item.IdTecnicoNavigation?.NombreCompleto</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (item.Estado == "Pendiente")
+                                {
+                                    <span class="bg-amber-500/10 text-amber-500 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-amber-500/10">PENDIENTE</span>
+                                }
+                                else if (item.Estado == "En Proceso")
+                                {
+                                    <span class="bg-indigo-500/10 text-indigo-500 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-indigo-500/10">EN PROCESO</span>
+                                }
+                                else
+                                {
+                                    <span class="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-emerald-500/10">FINALIZADO</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex justify-center gap-1">
+                                    <button onclick="cambiarEstado(@item.IdVisita, 'Finalizado', event)" class="w-8 h-8 flex items-center justify-center bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition-all" title="Finalizar">
+                                        <i class="bi bi-check-lg text-xs"></i>
+                                    </button>
+                                    <button onclick="eliminarVisita(@item.IdVisita, event)" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar">
+                                        <i class="bi bi-trash-fill text-xs"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var table = $('#tablaVisitas').DataTable({
+                dom: 'rtip',
+                pageLength: 25,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
+                },
+                order: [[1, 'desc']]
+            });
+
+            $('#filtroId').on('keyup', function () { table.column(0).search(this.value).draw(); });
+            
+            $('#filtroFecha').on('change', function () {
+                if (this.value) {
+                    var parts = this.value.split('-'); 
+                    var formatted = parts[2] + '/' + parts[1] + '/' + parts[0]; 
+                    table.column(1).search(formatted).draw();
+                } else {
+                    table.column(1).search('').draw();
+                }
+            });
+
+            $('#filtroCliente').on('keyup', function () { table.column(2).search(this.value).draw(); });
+            $('#filtroTecnico').on('keyup', function () { table.column(3).search(this.value).draw(); });
+
+            window.limpiarFiltros = function() {
+                $('#filtroId, #filtroFecha, #filtroCliente, #filtroTecnico').val('');
+                table.search('').columns().search('').draw();
+            };
+        });
+
+        function cambiarEstado(id, estado, event) {
+            const btn = event.currentTarget;
+            const originalIcon = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin text-xs"></i>';
+            
+            $.post('/Agenda/CambiarEstado', { id: id, nuevoEstado: estado }, function(res) {
+                if(res.success) {
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalIcon;
+                }
+            });
+        }
+
+        function eliminarVisita(id, event) {
+            const btn = event.currentTarget;
+            const originalIcon = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin text-xs"></i>';
+
+            $.post('/Agenda/Eliminar', { id: id }, function(res) {
+                if(res.success) {
+                    location.reload();
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalIcon;
+                }
+            }).fail(function() {
+                btn.disabled = false;
+                btn.innerHTML = originalIcon;
+            });
+        }
+    </script>
+}

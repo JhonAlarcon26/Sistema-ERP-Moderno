@@ -1,0 +1,101 @@
+@model IEnumerable<Sistema_ERP.Models.ReporteRentabilidadViewModel>
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Reporte_Rentabilidad_@DateTime.Now.ToString("yyyyMMdd")</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #fff; color: #000; padding: 40px; }
+        .header-table { width: 100%; margin-bottom: 40px; border-bottom: 2px solid #4f46e5; padding-bottom: 20px; }
+        .logo { font-size: 28px; font-weight: bold; color: #4f46e5; }
+        .report-title { font-size: 24px; font-weight: bold; color: #1e293b; margin-top: 10px; }
+        .period-info { font-size: 14px; color: #64748b; margin-top: 5px; }
+        
+        .table-items { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table-items th { background: #f8fafc; border-bottom: 2px solid #e2e8f0; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #475569; }
+        .table-items td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #1e293b; }
+        
+        .badge-print { 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 10px; 
+            font-weight: bold;
+            border: 1px solid #ccc;
+        }
+        
+        @@media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print mb-4 text-center">
+        <button onclick="window.print()" class="btn btn-primary">Imprimir / Guardar como PDF</button>
+        <button onclick="window.close()" class="btn btn-secondary">Cerrar</button>
+    </div>
+
+    <div class="header-table">
+        <table style="width: 100%;">
+            <tr>
+                <td>
+                    <div class="logo">STC SERVICES</div>
+                    <div class="report-title">REPORTE DE RENTABILIdaD</div>
+                    <div class="period-info">Periodo: @ViewBag.FechaInicio al @ViewBag.FechaFin</div>
+                </td>
+                <td style="text-align: right; vertical-align: top;">
+                    <div style="font-size: 12px; color: #64748b;">Generado el: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</div>
+                    <div style="font-size: 12px; color: #64748b;">Usuario: Administrador</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="table-items">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th style="text-align: right;">Precio Venta (c/f)</th>
+                <th style="text-align: right;">Costo Promedio</th>
+                <th style="text-align: right;">Utilidad</th>
+                <th style="text-align: center;">Margen %</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var ganancia = item.PrecioVentaConFactura - item.CostoPromedio;
+                var margen = item.PrecioVentaConFactura > 0 ? (ganancia / item.PrecioVentaConFactura) * 100 : 0;
+                
+                <tr>
+                    <td><strong>@item.NombreProducto</strong></td>
+                    <td style="text-align: right;">Bs. @item.PrecioVentaConFactura.ToString("N2")</td>
+                    <td style="text-align: right;">Bs. @item.CostoPromedio.ToString("N2")</td>
+                    <td style="text-align: right; font-weight: bold; color: @(ganancia >= 0 ? "#059669" : "#dc2626")">
+                        Bs. @ganancia.ToString("N2")
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="badge-print">
+                            @margen.ToString("N1")%
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div style="margin-top: 50px; font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px dashed #e2e8f0; padding-top: 20px;">
+        Este reporte es para uso interno administrativo. Los cálculos se basan en el promedio de costos de compra del periodo seleccionado.
+    </div>
+
+    <script>
+        window.onload = function() {
+
+        }
+    </script>
+</body>
+</html>

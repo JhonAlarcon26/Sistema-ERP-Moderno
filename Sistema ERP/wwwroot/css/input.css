@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .sidebar-link { @apply flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 text-sm font-medium transition-all duration-200 hover:bg-indigo-500/10 hover:text-white; }
+    .sidebar-link.active { @apply bg-indigo-500/15 text-white; box-shadow: inset 3px 0 0 #6366f1; }
+    .sidebar-link i { @apply text-lg w-5 text-center; }
+    .section-label { @apply text-xs font-semibold tracking-widest text-slate-600 uppercase px-4 pb-1 pt-4; }
+    .btn-primary { @apply inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-900/30; }
+    .btn-secondary { @apply inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium px-4 py-2 rounded-xl transition-all duration-200; }
+    .btn-danger { @apply inline-flex items-center gap-2 bg-red-600/10 hover:bg-red-600 border border-red-600/30 hover:border-transparent text-red-400 hover:text-white text-sm font-medium px-4 py-2 rounded-xl transition-all duration-200; }
+    .btn-warning { @apply inline-flex items-center gap-2 bg-amber-500/10 hover:bg-amber-500 border border-amber-500/30 hover:border-transparent text-amber-400 hover:text-white text-sm font-medium px-4 py-2 rounded-xl transition-all duration-200; }
+    .btn-info { @apply inline-flex items-center gap-2 bg-cyan-500/10 hover:bg-cyan-500 border border-cyan-500/30 hover:border-transparent text-cyan-400 hover:text-white text-sm font-medium px-4 py-2 rounded-xl transition-all duration-200; }
+    .glass-card { @apply bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl; }
+    .form-input { @apply w-full bg-slate-900/80 border border-slate-700 text-white text-sm rounded-xl px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all; }
+    
+    
+    select.form-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 1rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+    
+    select.form-input option {
+        @apply bg-slate-900 text-white;
+    }
+    .form-label { @apply block text-sm font-medium text-slate-300 mb-1.5; }
+    .page-title { @apply text-2xl font-bold text-white; }
+    .stat-card { @apply glass-card p-5 flex items-start gap-4; }
+    .table-row { @apply border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors; }
+    .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+    .badge-green { @apply badge bg-emerald-500/15 text-emerald-400; }
+    .badge-red { @apply badge bg-red-500/15 text-red-400; }
+    .badge-blue { @apply badge bg-indigo-500/15 text-indigo-400; }
+    .badge-amber { @apply badge bg-amber-500/15 text-amber-400; }
+    .modal-overlay { @apply fixed inset-0 z-50 flex items-center justify-center p-4; }
+    .modal-backdrop { @apply absolute inset-0 bg-black/60 backdrop-blur-sm; }
+    .modal-box { @apply relative glass-card p-6 w-full shadow-2xl; }
+}

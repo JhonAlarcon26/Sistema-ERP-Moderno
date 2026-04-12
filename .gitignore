@@ -1,0 +1,21 @@
+# .NET
+[Bb]in/
+[Oo]bj/
+out/
+.vscode/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Docker
+.env
+.docker/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# SQL Server local (si existe)
+*.mdf
+*.ldf

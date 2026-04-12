@@ -1,0 +1,302 @@
+@model IEnumerable<Sistema_ERP.Models.CobroPendiente>
+@{
+    ViewData["Title"] = "Historial de Liquidaciones";
+}
+
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 pt-4">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-slate-700 rounded-xl flex items-center justify-center">
+                <i class="bi bi-clock-history text-indigo-400 text-lg"></i>
+            </span>
+            Historial de Liquidaciones
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Consulta los cobros que ya han sido pagados en su totalidad.</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="@Url.Action("Index", "Cobros")" class="bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 px-4 flex items-center gap-2 rounded-xl transition-colors border border-slate-700">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="glass-card p-6 border-l-4 border-slate-500">
+        <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Liquidaciones</p>
+        <h3 class="text-3xl font-black text-white">@Model.Count()</h3>
+    </div>
+    <div class="glass-card p-6 border-l-4 border-emerald-500">
+        <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Total Recaudado</p>
+        <h3 class="text-3xl font-black text-emerald-400">Bs. @Model.Sum(x => x.MontoPagado).ToString("N2")</h3>
+    </div>
+</div>
+
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-calendar-Date"></i> Fecha</label>
+            <input type="Date" id="filtroFecha" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-hash"></i> Nro. Operación</label>
+            <input type="text" id="filtroOperacion" placeholder="Ej. VEN-0001" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-person"></i> Cliente</label>
+            <input type="text" id="filtroCliente" placeholder="Buscar cliente..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-cash"></i> Monto Pagado</label>
+            <input type="text" id="filtroMonto" placeholder="Ej. 150.00" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left" id="tablaHistorial">
+            <thead>
+                <tr class="text-slate-400 font-medium uppercase tracking-wider text-xs border-b border-slate-700/50">
+                    <th class="px-5 py-4">Operación</th>
+                    <th class="px-5 py-4">Cliente / Deudor</th>
+                    <th class="px-5 py-4">Fecha de Liquidación</th>
+                    <th class="px-5 py-4 text-left">Monto Pagado (Total)</th>
+                    <th class="px-5 py-4 text-left">Estado</th>
+                    <th class="px-5 py-4 text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/40">
+                @foreach (var item in Model)
+                {
+                    <tr class="hover:bg-slate-800/30 transition-colors group">
+                        <td class="px-5 py-4 font-mono text-slate-300">
+                            @item.IdOperacionNavigation.NroCorrelativo
+                        </td>
+                        <td class="px-5 py-4">
+                            <span class="font-bold text-white block">@item.IdOperacionNavigation.IdClienteNavigation.NombreRazonSocial</span>
+                            <span class="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                                <i class="bi bi-telephone"></i> @(item.IdOperacionNavigation.IdClienteNavigation.Telefono ?? "S/N")
+                            </span>
+                        </td>
+                        <td class="px-5 py-4">
+                            @{
+                                var ultimaFechaPago = item.HistorialPagos.OrderByDescending(h => h.FechaPago).FirstOrDefault()?.FechaPago;
+                                var fechaMostrar = ultimaFechaPago.HasValue ? ultimaFechaPago.Value.ToString("dd/MM/yyyy HH:mm") : item.FechaRegistro.ToString("dd/MM/yyyy HH:mm");
+                            }
+                            <span class="font-medium text-slate-300 flex items-center gap-1.5">
+                                <i class="bi bi-calendar-check text-xs"></i>
+                                @fechaMostrar
+                            </span>
+                        </td>
+                        <td class="px-5 py-4 text-left">
+                            <span class="font-bold text-lg text-white font-mono block">Bs. @item.MontoPagado.ToString("N2")</span>
+                        </td>
+                        <td class="px-5 py-4 text-left">
+                            <span class="badge badge-green"><i class="bi bi-check-circle mr-1"></i>Liquidado</span>
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="verHistorialPagos(@item.IdCobro)" class="w-8 h-8 rounded-lg bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white flex items-center justify-center transition-all shadow shadow-indigo-500/20" title="Ver Historial">
+                                    <i class="bi bi-eye-fill"></i>
+                                </button>
+                                <button onclick="imprimirCobro(@item.IdCobro)" class="w-8 h-8 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white flex items-center justify-center transition-all shadow shadow-emerald-500/20" title="Imprimir Recibo">
+                                    <i class="bi bi-printer-fill"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div id="modalAbono" class="modal-overlay hidden">
+    <div class="modal-backdrop" onclick="closeModal('modalAbono')"></div>
+    <div class="modal-box w-full max-w-5xl bg-slate-900 p-0 overflow-hidden" id="modalAbonoContent">
+        <div class="p-8 text-center text-slate-400">
+            <i class="bi bi-arrow-repeat animate-spin text-3xl"></i>
+            <p class="mt-2 text-sm">Cargando detalles...</p>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <style>
+        .DataTables_wrapper .DataTables_paginate .paginate_button {
+            color: #94a3b8 !important;
+        }
+        .DataTables_wrapper .DataTables_paginate .paginate_button.current {
+            background: #4f46e5 !important;
+            color: white !important;
+            border: none;
+            border-radius: 0.5rem;
+        }
+        .DataTables_length, .DataTables_filter { display: none !important; }
+        table.DataTable.no-footer { border-bottom: none; }
+        .DataTables_info { color: #64748b !important; padding-top: 1rem; }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+             var table = $('#tablaHistorial').DataTable({
+                "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json" },
+                "order": [[ 2, "desc" ]],
+                "dom": 't<"flex flex-col md:flex-row justify-between items-center mt-4 text-sm text-slate-400"ip>'
+            });
+
+
+
+            
+            $('#filtroOperacion').on('keyup', function () {
+                var val = this.value.trim();
+                if (val) {
+                    if (/^\d+$/.test(val)) {
+                        var regex = "\\-[0]*" + val + "\\b";
+                        table.column(0).search(regex, true, false).draw();
+                    } else if (/^[A-Za-z]+-\d+$/.test(val)) {
+                        var parts = val.split('-');
+                        var regex = parts[0] + "\\-[0]*" + parts[1] + "\\b";
+                        table.column(0).search(regex, true, false).draw();
+                    } else {
+                        table.column(0).search(val, false, true).draw();
+                    }
+                } else {
+                    table.column(0).search('', false, true).draw();
+                }
+            });
+
+            $('#filtroCliente').on('keyup', function () {
+                table.column(1).search(this.value).draw();
+            });
+
+            $('#filtroMonto').on('keyup', function () {
+                table.column(3).search(this.value).draw();
+            });
+
+
+            $('#filtroFecha').on('change', function () {
+                var DateValue = this.value;
+                if (DateValue) {
+                    var parts = DateValue.split('-');
+                    var formattedDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+                    table.column(2).search(formattedDate).draw();
+                } else {
+                    table.column(2).search('').draw();
+                }
+            });
+        });
+
+        function limpiarFiltros() {
+            $('#filtroFecha, #filtroOperacion, #filtroCliente, #filtroMonto').val('');
+            var table = $('#tablaHistorial').DataTable();
+            table.search('').columns().search('').draw();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        async function verHistorialPagos(id) {
+            openModal('modalAbono');
+            const box = document.getElementById('modalAbonoContent');
+            box.innerHTML = `<div class="p-8 text-center text-slate-400"><i class="bi bi-arrow-repeat animate-spin text-3xl"></i><p class="mt-2 text-sm">Cargando historial...</p></div>`;
+
+             try {
+                const res = await fetch(`/Cobros/DetalleDeuda?id=${id}`);
+                if (res.ok) {
+                    const html = await res.text();
+                    $(box).html(html);
+                } else {
+                    box.innerHTML = `<div class="p-8 text-center text-red-400"><p>No se encontraron Datos.</p></div>`;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function imprimirCobro(id) {
+            try {
+                const res = await fetch(`/Cobros/ObtenerDatosRecibo?id=${id}`);
+                const Data = await res.json();
+                if(!Data.success) {
+                    alert('Error al obtener Datos');
+                    return;
+                }
+
+                let filasHTML = '';
+                Data.historial.forEach(item => {
+                    filasHTML += `<tr>
+                        <td style="border:1px solid #999; padding:4px 6px;">${item.fecha}</td>
+                        <td style="border:1px solid #999; padding:4px 6px;">${item.metodo}</td>
+                        <td style="border:1px solid #999; padding:4px 6px; text-align:right;">Bs. ${parseFloat(item.monto).toFixed(2)}</td>
+                    </tr>`;
+                });
+
+                if (Data.historial.length === 0) {
+                    filasHTML = `<tr><td colspan="3" style="text-align:center; padding:10px; border:1px solid #999;">No hay pagos registrados</td></tr>`;
+                }
+
+                const zonaImp = document.getElementById('zonaImpresionGlobal');
+                zonaImp.innerHTML = `
+                    <div style="font-family: Arial, sans-serif; padding: 10px;">
+                        <div style="text-align:center; margin-bottom:15px;">
+                            <h2 style="margin:0; font-size:18px; font-weight:900; letter-spacing:-0.5px; color: #000;">STC Services</h2>
+                            <p style="margin:2px 0; font-size:9px; text-transform:uppercase; letter-spacing:2px; color:#444;">Recibo de Cobranza (Cancelado)</p>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; border:1px solid #ccc; padding:8px 12px; margin-bottom:10px; font-size:11px;">
+                            <div>
+                                <strong>Operación:</strong> ${Data.operacion}<br>
+                                <strong>Cliente:</strong> ${Data.cliente}
+                            </div>
+                            <div style="text-align:right;">
+                                <strong>Deuda Total:</strong> Bs. ${parseFloat(Data.montoTotal).toFixed(2)}<br>
+                                <strong>Estado:</strong> <span style="font-weight:bold;">${Data.estado.toUpperCase()}</span>
+                            </div>
+                        </div>
+
+                        <h4 style="margin:10px 0 5px; font-size:11px;">Historial de Pagos</h4>
+                        <table style="width:100%; border-collapse:collapse; font-size:10px;">
+                            <thead>
+                                <tr>
+                                    <th style="border:1px solid #999; padding:5px; text-align:left; background:#eee;">Fecha</th>
+                                    <th style="border:1px solid #999; padding:5px; text-align:left; background:#eee;">Método</th>
+                                    <th style="border:1px solid #999; padding:5px; text-align:right; background:#eee;">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filasHTML}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" style="border:1px solid #999; padding:8px 6px; text-align:right; font-weight:bold;">Total Pagado:</td>
+                                    <td style="border:1px solid #999; padding:8px 6px; text-align:right; font-weight:bold; font-size:12px;">Bs. ${parseFloat(Data.montoPagado).toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    window.print();
+                }, 300);
+
+            } catch(e) {
+                console.error(e);
+                alert("Error de red");
+            }
+        }
+    </script>
+}

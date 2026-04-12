@@ -1,0 +1,43 @@
+@model Sistema_ERP.Models.Role
+@{ ViewData["Title"] = "Nuevo Rol"; }
+
+<div class="flex flex-col items-center justify-center min-h-[70vh]">
+    <div class="w-full max-w-lg">
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-black text-white mb-2">Crear Nuevo Rol</h1>
+            <p class="text-slate-500">Define un perfil de acceso especializado</p>
+        </div>
+
+        <div class="glass-card p-8">
+            <form asp-action="Crear" method="post" class="space-y-6">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs"></div>
+
+                <div>
+                    <label asp-for="NombreRol" class="form-label">Nombre del Perfil</label>
+                    <div class="relative group">
+                        <i class="bi bi-shield-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                        <input asp-for="NombreRol" class="form-input pl-11" placeholder="Ej: Supervisor de Ventas" required />
+                    </div>
+                    <span asp-validation-for="NombreRol" class="text-red-500 text-[10px] mt-1 block uppercase font-bold tracking-wider"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Descripcion" class="form-label">Descripción</label>
+                    <textarea asp-for="Descripcion" class="form-input min-h-[100px]" placeholder="Breve detalle de las responsabilidades..."></textarea>
+                    <span asp-validation-for="Descripcion" class="text-red-500 text-[10px] mt-1 block uppercase font-bold tracking-wider"></span>
+                </div>
+
+                <div class="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4 flex gap-3">
+                    <i class="bi bi-info-circle text-indigo-400"></i>
+                    <p class="text-xs text-slate-400">Una vez creado el rol, podrás asignar permisos específicos desde el panel de gestión.</p>
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <a asp-action="Index" class="btn-secondary flex-1 justify-center">Cancelar</a>
+                    <button type="submit" class="btn-primary flex-1 justify-center">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

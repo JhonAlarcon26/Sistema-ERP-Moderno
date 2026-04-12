@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - STC Services</title>
+    
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#6366f1', hover: '#4f46e5', light: '#818cf8' },
+                        surface: { DEFAULT: '#0f172a', card: '#1e293b', border: '#334155' },
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .sidebar-link { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            padding: 0.75rem 1rem; 
+            border-radius: 0.75rem; 
+            color: #94a3b8; 
+            font-size: 0.875rem; 
+            font-weight: 500; 
+            transition: all 0.2s; 
+        }
+        .sidebar-link:hover { 
+            background-color: rgba(99, 102, 241, 0.1); 
+            color: white; 
+        }
+        .sidebar-link.active { 
+            background-color: rgba(99, 102, 241, 0.15); 
+            color: white; 
+            box-shadow: inset 3px 0 0 #6366f1; 
+        }
+        .sidebar-link i { 
+            font-size: 1.125rem; 
+            width: 1.25rem; 
+            text-align: center; 
+        }
+        .section-label { 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            letter-spacing: 0.1em; 
+            color: #475569; 
+            text-transform: uppercase; 
+            padding: 1rem 1rem 0.25rem 1rem; 
+        }
+        .btn-primary { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            background-color: #4f46e5; 
+            color: white; 
+            font-size: 0.875rem; 
+            font-weight: 600; 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.75rem; 
+            transition: all 0.2s; 
+            box-shadow: 0 10px 15px -3px rgba(30, 27, 75, 0.3); 
+        }
+        .btn-primary:hover { background-color: #6366f1; }
+        .btn-secondary { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            background-color: #334155; 
+            color: #e2e8f0; 
+            font-size: 0.875rem; 
+            font-weight: 500; 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.75rem; 
+            transition: all 0.2s; 
+        }
+        .btn-secondary:hover { background-color: #475569; }
+        .btn-Danger { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            background-color: rgba(220, 38, 38, 0.1); 
+            border: 1px solid rgba(220, 38, 38, 0.3); 
+            color: #f87171; 
+            font-size: 0.875rem; 
+            font-weight: 500; 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.75rem; 
+            transition: all 0.2s; 
+        }
+        .btn-Danger:hover { background-color: #dc2626; color: white; border-color: transparent; }
+        .glass-card { 
+            background-color: rgba(30, 41, 59, 0.4); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(51, 65, 85, 0.5); 
+            border-radius: 1rem; 
+        }
+        .form-input { 
+            width: 100%; 
+            background-color: rgba(15, 23, 42, 0.6); 
+            border: 1px solid #334155; 
+            color: white; 
+            font-size: 0.875rem; 
+            border-radius: 0.75rem; 
+            padding: 0.75rem 1rem; 
+            transition: all 0.2s; 
+        }
+        .form-input:focus { outline: none; ring: 2px solid #6366f1; border-color: transparent; }
+        .badge { display: inline-flex; align-items: center; padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-green { background-color: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .badge-red { background-color: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .badge-blue { background-color: rgba(99, 102, 241, 0.15); color: #818cf8; }
+        .badge-amber { background-color: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    </style>
+
+
+    <style type="text/tailwindcss">
+        
+        input[type="Date"] {
+            position: relative;
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(99, 102, 241, 0.2) !important;
+            border-radius: 12px !important;
+            padding: 10px 16px !important;
+            color: white !important;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        input[type="Date"]:hover {
+            border-color: rgba(99, 102, 241, 0.5) !important;
+            background: rgba(15, 23, 42, 0.8) !important;
+            transform: translateY(-1px);
+        }
+
+        input[type="Date"]:focus {
+            outline: none !important;
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15) !important;
+        }
+
+        input[type="Date"]::-webkit-calendar-picker-indicator {
+            background-image: url("Data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236366f1' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            cursor: pointer;
+            filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.5));
+            padding: 5px;
+            transition: all 0.2s ease;
+        }
+
+        input[type="Date"]::-webkit-calendar-picker-indicator:hover {
+            transform: scale(1.1);
+        }
+
+        
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+    </style>
+
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/bootstrap-icons.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        
+        .ts-wrapper.select-searchable .ts-control { 
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 1px solid #334155 !important;
+            border-radius: 0.75rem !important;
+            color: #ffffff !important; 
+            min-height: 44px !important;
+            padding: 0 12px !important;
+            display: flex !important;
+            align-items: center !important;
+            transition: all 0.2s ease !important;
+        }
+        .ts-wrapper.select-searchable .ts-control > input {
+            color: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .ts-wrapper.select-searchable .ts-control > .item {
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .ts-dropdown.select-searchable, body .ts-dropdown {
+            background-color: #0f172a !important;
+            border: 1px solid #334155 !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        }
+        .ts-dropdown .option { color: #cbd5e1 !important; padding: 12px 15px !important; transition: all 0.2s ease !important; }
+        .ts-dropdown .option.active, .ts-dropdown .option:hover, .ts-dropdown-content .option:hover { 
+            background-color: #2563eb !important; 
+            color: white !important; 
+            cursor: pointer !important; 
+        }
+        .ts-dropdown .active { background-color: #2563eb !important; }
+    </style>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style id="modal-critical-styles">
+        
+        .modal-overlay { 
+            position: fixed !important; 
+            top: 0 !important; 
+            left: 0 !important; 
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999999 !important; 
+            display: flex !important; 
+            align-items: center !important; 
+            justify-content: center !important; 
+            background-color: rgba(0, 0, 0, 0.75) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+        }
+        .modal-overlay.hidden { display: none !important; }
+        
+        .modal-box { 
+            position: relative !important; 
+            width: 90% !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            background: #1e293b !important; 
+            border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+            border-radius: 1.5rem !important; 
+            padding: 2.5rem !important; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+            color: white !important;
+            margin: auto !important;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+        }
+
+        .modal-box::-webkit-scrollbar { width: 6px; }
+        .modal-box::-webkit-scrollbar-track { background: transparent; }
+        .modal-box::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30">
+    
+    @await RenderSectionAsync("Modals", required: false)
+
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        
+        <aside class="fixed top-0 left-0 h-full w-64 bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 flex flex-col z-40">
+            
+            <div class="px-6 py-5 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shadow-lg shadow-indigo-900/50 border-2 border-indigo-500/30 bg-slate-800">
+                        <video autoplay muted loop playsinline class="w-full h-full object-cover">
+                            <source src="~/media/logo_animado.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <div>
+                        <span class="text-white font-bold text-base tracking-tight italic">STC</span><span class="text-indigo-400 font-bold text-base tracking-tight"> Services</span>
+                        <p class="text-indigo-500/80 text-[10px] font-bold tracking-widest uppercase leading-none mt-0.5">INNOVATE FORWARD</p>
+                    </div>
+                </div>
+            </div>
+
+            
+            @await Component.InvokeAsync("Sidebar")
+
+            
+            <div class="px-3 py-4 border-t border-slate-800">
+                <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-800/50 mb-2">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                        @(User.Identity?.Name?.Length > 0 ? User.Identity.Name[0].ToString().ToUpper() : "U")
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white text-sm font-medium truncate">@User.Identity?.Name</p>
+                        <p class="text-slate-500 text-[10px] uppercase tracking-tighter truncate">@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Usuario")</p>
+                    </div>
+                </div>
+                <a asp-controller="Account" asp-action="Logout"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 text-sm transition-all duration-200">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        
+        <main class="ml-64 min-h-screen transition-all duration-300">
+            <div class="p-8 max-w-[1600px] mx-auto">
+                @RenderBody()
+            </div>
+        </main>
+    }
+    else
+    {
+        @RenderBody()
+    }
+
+    
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="~/js/mapa-interactivo.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.select-searchable').forEach(el => {
+                new TomSelect(el, {
+                    create: false,
+                    onInitialize: function() { this.refreshOptions(false); },
+                    dropdownClass: 'select-searchable',
+                    sortField: { field: "text", direction: "asc" }
+                });
+            });
+
+            $(document).on('submit', 'form', function(e) {
+                const form = this;
+                if (form.getAttribute('data-submitting') === 'true') {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (form.checkValidity && !form.checkValidity()) {
+                    return;
+                }
+                
+                form.setAttribute('data-submitting', 'true');
+                const submitBtn = $(form).find('button[type="submit"], input[type="submit"]').first();
+                if (submitBtn.length > 0) {
+                    submitBtn.prop('disabled', true);
+                    submitBtn.html('<i class="bi bi-hourglass-split animate-spin mr-2"></i>Procesando...');
+                }
+            });
+        });
+    </script>
+    
+    <div id="zonaImpresionGlobal" class="hidden"></div>
+
+    <style>
+        @@media print {
+            body > *:not(#zonaImpresionGlobal) {
+                display: none !important;
+            }
+            
+            #zonaImpresionGlobal {
+                display: block !important;
+                visibility: visible !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                background: white !important;
+                color: black !important;
+            }
+        }
+    </style>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

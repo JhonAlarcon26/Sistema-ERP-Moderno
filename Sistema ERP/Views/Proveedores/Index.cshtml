@@ -1,0 +1,247 @@
+@model IEnumerable<Sistema_ERP.Models.Proveedor>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{ ViewData["Title"] = "Proveedores"; }
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-violet-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-truck text-violet-400 text-lg"></i>
+            </span>
+            Proveedores
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">@Model.Count() proveedores registrados en el sistema</p>
+    </div>
+    @if ((await AuthorizationService.AuthorizeAsync(User, "CrearProveedor")).Succeeded)
+    {
+        <a asp-action="Crear" class="btn-primary">
+            <i class="bi bi-plus-lg"></i> Nuevo Proveedor
+        </a>
+    }
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center gap-2">
+        <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2">
+        <i class="bi bi-x-circle-fill"></i> @TempData["Error"]
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="mb-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm flex items-center gap-2">
+        <i class="bi bi-info-circle-fill"></i> @TempData["Info"]
+    </div>
+}
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-hash"></i> ID</label>
+            <input type="text" id="filtroId" placeholder="Ej. 1..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-truck"></i> Proveedor</label>
+            <input type="text" id="filtroProveedor" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-tag"></i> Tipo</label>
+            <input type="text" id="filtroTipo" placeholder="Ej. Mayorista..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-person-vcard"></i> NIT / CI</label>
+            <input type="text" id="filtroNitCi" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-telephone"></i> Teléfono</label>
+            <input type="text" id="filtroTelefono" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="tablaProveedores">
+            <thead>
+                <tr class="border-b border-slate-700/50">
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">#</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Proveedor</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Tipo</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">NIT / CI</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Teléfono</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Dirección</th>
+                    <th class="text-right px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr class="table-row border-t border-slate-700/30">
+                        <td class="px-5 py-3 text-slate-500 text-xs font-mono">@p.IdProveedor</td>
+                        <td class="px-5 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/10">
+                                    <span class="text-violet-400 font-bold text-xs">@p.Nombre[0].ToString().ToUpper()</span>
+                                </div>
+                                <span class="text-white font-medium">@p.Nombre</span>
+                            </div>
+                        </td>
+                        <td class="px-5 py-3">
+                            @if (!string.IsNullOrEmpty(p.TipoProveedor))
+                            {
+                                <span class="bg-violet-500/10 text-violet-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-violet-500/10">@p.TipoProveedor</span>
+                            }
+                            else
+                            {
+                                <span class="text-slate-600">—</span>
+                            }
+                        </td>
+                        <td class="px-5 py-3 text-slate-300 font-mono text-xs">@(p.NitCi ?? "—")</td>
+                        <td class="px-5 py-3 text-slate-400 text-xs">@(p.Telefono ?? "—")</td>
+                        <td class="px-5 py-3 text-slate-400 text-xs truncate max-w-[200px]">@(p.Direccion ?? "—")</td>
+                        <td class="px-5 py-3 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "VerMapaProveedor")).Succeeded && (!string.IsNullOrEmpty(p.Latitud) || !string.IsNullOrEmpty(p.Longitud)))
+                                {
+                                    <button onclick="verMapa('@p.Nombre.Replace("'", "\\'")', '@(p.Latitud ?? "0")', '@(p.Longitud ?? "0")', '@(p.Direccion?.Replace("'", "\\'") ?? "")')" class="w-8 h-8 flex items-center justify-center bg-violet-500/10 text-violet-400 hover:bg-violet-500 hover:text-white rounded-lg transition-all" title="Ver Ubicación">
+                                        <i class="bi bi-geo-alt-fill text-xs"></i>
+                                    </button>
+                                }
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EditarProveedor")).Succeeded)
+                                {
+                                    <a asp-action="Editar" asp-route-id="@p.IdProveedor" class="w-8 h-8 flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-all" title="Editar">
+                                        <i class="bi bi-pencil-fill text-xs"></i>
+                                    </a>
+                                }
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarProveedor")).Succeeded)
+                                {
+                                    <form asp-action="Eliminar" asp-route-id="@p.IdProveedor" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar">
+                                            <i class="bi bi-trash-fill text-xs"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div id="modalMapa" class="fixed inset-0 z-[2000] hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+    <div class="glass-card w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col scale-95 opacity-0 transition-all duration-300 transform" id="modalMapaContent">
+        <div class="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-slate-900/50">
+            <h3 class="text-white font-bold flex items-center gap-2">
+                <i class="bi bi-geo-alt text-violet-400"></i> Ubicación: <span id="modalMapaTitulo" class="text-slate-300 font-normal"></span>
+            </h3>
+            <button onclick="cerrarModalMapa()" class="text-slate-400 hover:text-white transition-colors text-2xl">&times;</button>
+        </div>
+        <div class="p-2 flex-1 relative min-h-0">
+            <div id="mapa-modal-container" class="w-full h-full rounded-xl overflow-hidden shadow-inner"></div>
+            
+            <div class="absolute bottom-6 left-6 right-6 z-[1000] bg-slate-900/90 backdrop-blur-md border border-white/10 p-4 rounded-2xl shadow-2xl">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 bg-violet-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="bi bi-geo-alt-fill text-violet-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">Dirección Registrada</p>
+                        <p id="modalMapaDireccion" class="text-sm text-white font-medium"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="~/js/mapa-interactivo.js"></script>
+<script>
+    let mapaModalInstance = null;
+
+    function verMapa(nombre, lat, lng, direccion) {
+        document.getElementById('modalMapaTitulo').innerText = nombre;
+        document.getElementById('modalMapaDireccion').innerText = direccion || "Sin dirección detallada";
+        
+        const modal = document.getElementById('modalMapa');
+        const content = document.getElementById('modalMapaContent');
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+            
+
+            if (!mapaModalInstance) {
+                mapaModalInstance = new MapaInteractivo('mapa-modal-container', {
+                    readOnly: true,
+                    center: [parseFloat(lat), parseFloat(lng)],
+                    zoom: 16
+                });
+            } else {
+                mapaModalInstance.map.setView([parseFloat(lat), parseFloat(lng)], 16);
+                mapaModalInstance.marker.setLatLng([parseFloat(lat), parseFloat(lng)]);
+            }
+            
+
+            setTimeout(() => { mapaModalInstance.map.invalidateSize(); }, 200);
+        }, 10);
+    }
+
+    function cerrarModalMapa() {
+        const modal = document.getElementById('modalMapa');
+        const content = document.getElementById('modalMapaContent');
+        
+        content.classList.add('scale-95', 'opacity-0');
+        content.classList.remove('scale-100', 'opacity-100');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    document.addEventListener('keydown', e => { 
+        if (e.key === 'Escape') {
+            if (!document.getElementById('modalMapa').classList.contains('hidden')) cerrarModalMapa();
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')); 
+        }
+    });
+
+    $(document).ready(function() {
+        var table = $('#tablaProveedores').DataTable({
+            dom: 'rtip',
+            pageLength: 10,
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
+            },
+            order: [[0, 'desc']]
+        });
+
+        $('#filtroId').on('keyup', function() { table.column(0).search(this.value).draw(); });
+        $('#filtroProveedor').on('keyup', function() { table.column(1).search(this.value).draw(); });
+        $('#filtroTipo').on('keyup', function() { table.column(2).search(this.value).draw(); });
+        $('#filtroNitCi').on('keyup', function() { table.column(3).search(this.value).draw(); });
+        $('#filtroTelefono').on('keyup', function() { table.column(4).search(this.value).draw(); });
+    });
+
+    function limpiarFiltros() {
+        $('#filtroId, #filtroProveedor, #filtroTipo, #filtroNitCi, #filtroTelefono').val('');
+        var table = $('#tablaProveedores').DataTable();
+        table.search('').columns().search('').draw();
+    }
+</script>
+}

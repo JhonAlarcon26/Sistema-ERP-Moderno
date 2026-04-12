@@ -1,0 +1,352 @@
+@model IEnumerable<Sistema_ERP.Models.CobroPendiente>
+@{
+    ViewData["Title"] = "Cobranzas";
+}
+
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 pt-4">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-emerald-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-wallet2 text-emerald-400 text-lg"></i>
+            </span>
+            Cobranzas
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Gestiona los pagos pendientes y deudores al día.</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="@Url.Action("Vencidos", "Cobros")" class="bg-rose-900/40 hover:bg-rose-800/60 text-white font-medium py-2 px-4 flex items-center gap-2 rounded-xl transition-colors border border-rose-700/50">
+            <i class="bi bi-exclamation-triangle text-rose-400"></i> Cuentas Vencidas
+        </a>
+        <a href="@Url.Action("Historial", "Cobros")" class="bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 px-4 flex items-center gap-2 rounded-xl transition-colors border border-slate-700">
+            <i class="bi bi-clock-history text-indigo-400"></i> Historial de Liquidaciones
+        </a>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="glass-card p-6 border-l-4 border-slate-500">
+        <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Total Pendiente</p>
+        <h3 class="text-3xl font-black text-white">Bs. @Model.Sum(x => x.MontoPendiente).ToString("N2")</h3>
+    </div>
+    <div class="glass-card p-6 border-l-4 border-red-500">
+        <p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Vencido / Atrasado</p>
+        <h3 class="text-3xl font-black text-rose-400">Bs. @(((decimal?)ViewBag.TotalVencido ?? 0m).ToString("N2"))</h3>
+    </div>
+</div>
+
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-hash"></i> Operación</label>
+            <input type="text" id="filtroOperacion" placeholder="Ej. VEN-001..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-person"></i> Cliente</label>
+            <input type="text" id="filtroCliente" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-calendar-event"></i> Fecha Límite</label>
+            <input type="Date" id="filtroFecha" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left" id="tablaCobros">
+            <thead>
+                <tr class="text-slate-400 font-medium uppercase tracking-wider text-xs border-b border-slate-700/50">
+                    <th class="px-5 py-4">Operación</th>
+                    <th class="px-5 py-4">Cliente / Deudor</th>
+                    <th class="px-5 py-4">Fecha Límite</th>
+                    <th class="px-5 py-4">Saldo Pendiente</th>
+                    <th class="px-5 py-4 text-center">Estado</th>
+                    <th class="px-5 py-4 text-right w-24">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/40">
+                @foreach (var item in Model)
+                {
+                    <tr class="hover:bg-slate-800/30 transition-colors group">
+                        <td class="px-5 py-4 font-mono text-slate-300">
+                            <span class="text-white font-bold">@item.IdOperacionNavigation.NroCorrelativo</span> <br>
+                            <span class="text-[10px] text-slate-500 uppercase tracking-tighter">@item.FechaRegistro.ToString("dd/MMM/yyyy")</span>
+                        </td>
+                        <td class="px-5 py-4">
+                            <span class="font-bold text-white block">@item.IdOperacionNavigation.IdClienteNavigation.NombreRazonSocial</span>
+                            <span class="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                                <i class="bi bi-telephone text-[10px]"></i> @(item.IdOperacionNavigation.IdClienteNavigation.Telefono ?? "S/N")
+                            </span>
+                        </td>
+                        <td class="px-5 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-amber-400 flex items-center gap-1.5">
+                                    <i class="bi bi-calendar-event text-xs"></i>
+                                    @item.FechaLimitePago.ToString("dd/MM/yyyy")
+                                </span>
+                                <span class="text-[10px] text-slate-500 font-mono">@item.FechaLimitePago.ToString("HH:mm")</span>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4">
+                            <span class="font-bold text-base text-white font-mono block">Bs. @item.MontoPendiente.ToString("N2")</span>
+                            <div class="w-full bg-slate-700 rounded-full h-1 mt-1.5 max-w-[120px]">
+                                @{
+                                    decimal porcentaje = item.MontoTotal > 0 ? (item.MontoPagado / item.MontoTotal) * 100 : 0;
+                                }
+                                <div class="bg-emerald-500 h-1 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.3)]" style="width: @porcentaje.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            <span class="bg-amber-500/10 text-amber-500 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-amber-500/10">PENDIENTE</span>
+                        </td>
+                        <td class="px-5 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button data-id="@item.IdCobro" data-action="historial" class="w-10 h-10 rounded-xl bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white flex items-center justify-center transition-all shadow shadow-indigo-500/20" title="Ver Historial">
+                                    <i class="bi bi-eye-fill"></i>
+                                </button>
+                                <button data-id="@item.IdCobro" data-action="abono" class="w-10 h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white flex items-center justify-center transition-all shadow shadow-emerald-500/20" title="Abonar / Pagar">
+                                    <i class="bi bi-cash-stack"></i>
+                                </button>
+                                <button data-id="@item.IdCobro" data-action="imprimir" class="w-10 h-10 rounded-xl bg-slate-500/10 hover:bg-slate-500 text-slate-400 hover:text-white flex items-center justify-center transition-all shadow shadow-slate-500/20" title="Imprimir Recibo">
+                                    <i class="bi bi-printer-fill"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div id="modalAbono" class="modal-overlay hidden">
+    <div class="modal-backdrop" onclick="closeModal('modalAbono')"></div>
+    <div class="modal-box w-full max-w-5xl bg-slate-900 p-0 overflow-hidden" id="modalAbonoContent">
+        
+        <div class="p-8 text-center text-slate-400">
+            <i class="bi bi-arrow-repeat animate-spin text-3xl"></i>
+            <p class="mt-2 text-sm">Cargando detalles...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+             var table = $('#tablaCobros').DataTable({
+                dom: 'rtip',
+                language: { url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json" },
+                order: [[ 2, "asc" ]]
+            });
+
+            $('#tablaCobros tbody').on('click', 'button[data-id]', function() {
+                const id = $(this).data('id');
+                const action = $(this).data('action');
+
+                if (action === 'historial' || action === 'abono') {
+                    verHistorialPagos(id, action);
+                } else if (action === 'imprimir') {
+                    imprimirCobro(id);
+                }
+            });
+
+            $('#filtroOperacion').on('keyup', function() { table.column(0).search(this.value).draw(); });
+            $('#filtroCliente').on('keyup', function() { table.column(1).search(this.value).draw(); });
+            
+            $('#filtroFecha').on('change', function() { 
+                if (this.value) {
+                    var DateParts = this.value.split('-');
+                    var formattedDate = DateParts[2] + '/' + DateParts[1] + '/' + DateParts[0];
+                    table.column(2).search(formattedDate).draw();
+                } else {
+                    table.column(2).search('').draw();
+                }
+            });
+        });
+
+        function limpiarFiltros() {
+            $('#filtroOperacion, #filtroCliente, #filtroFecha').val('');
+            var table = $('#tablaCobros').DataTable();
+            table.search('').columns().search('').draw();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function ejecutarScriptsDelContenido(contenedor) {
+            const scripts = contenedor.querySelectorAll('script');
+            scripts.forEach(function(scriptViejo) {
+                var scriptNuevo = document.createElement('script');
+                if (scriptViejo.src) {
+                    scriptNuevo.src = scriptViejo.src;
+                } else {
+                    scriptNuevo.textContent = scriptViejo.textContent;
+                }
+                scriptViejo.parentNode.replaceChild(scriptNuevo, scriptViejo);
+            });
+        }
+
+        async function verHistorialPagos(id, modo) {
+            if (!modo) modo = 'historial';
+            var modal = document.getElementById('modalAbono');
+            var box = document.getElementById('modalAbonoContent');
+            
+            if (!modal || !box) return;
+
+            modal.classList.remove('hidden');
+            box.innerHTML = '<div class="p-8 text-center text-slate-400"><i class="bi bi-arrow-repeat animate-spin text-3xl"></i><p class="mt-2 text-sm font-medium">Cargando detalles de la deuda...</p></div>';
+
+            try {
+                var res = await fetch('/Cobros/DetalleDeuda?id=' + id + '&modo=' + modo);
+                if (res.ok) {
+                    var html = await res.text();
+                    box.innerHTML = html;
+                    ejecutarScriptsDelContenido(box);
+                    
+                    if (modo === 'abono') {
+                        setTimeout(function() {
+                            var inp = document.getElementById('inpMontoAbono');
+                            if (inp) { inp.focus(); inp.select(); }
+                        }, 200);
+                    }
+                } else {
+                    box.innerHTML = '<div class="p-8 text-center text-rose-400"><i class="bi bi-exclamation-circle text-2xl mb-2"></i><p>No se pudo cargar la información.</p><button onclick="closeModal(\'modalAbono\')" class="mt-4 text-xs underline">Cerrar</button></div>';
+                }
+            } catch (err) {
+                console.error(err);
+                box.innerHTML = '<div class="p-8 text-center text-rose-400"><p>Error de conexión con el servidor.</p></div>';
+            }
+        }
+
+        async function procesarAbono(idCobro) {
+            const inp = document.getElementById('inpMontoAbono');
+            const monto = parseFloat(inp.value);
+            const saldoPendiente = parseFloat(inp.getAttribute('max'));
+            const metodo = document.getElementById('selMetodoPago').value;
+
+            if (isNaN(monto) || monto <= 0) { alert('Ingresa un monto válido mayor a 0.'); return; }
+            if (!isNaN(saldoPendiente) && monto > saldoPendiente) {
+                alert(`❌ El monto ingresado (Bs. ${monto.toFixed(2)}) supera el saldo pendiente (Bs. ${saldoPendiente.toFixed(2)}).\nPor favor, corrige el monto.`);
+                return;
+            }
+            if (!metodo) {
+                alert('❌ Debe seleccionar un método de pago.');
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick*="procesarAbono"]');
+            if (btn && btn.disabled) return;
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin text-xl"></i> Procesando...';
+            }
+
+            try {
+                const res = await fetch(`/Cobros/AbonarAPI`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ IdCobro: idCobro, MontoAbono: monto, IdMetodoPago: metodo ? parseInt(metodo) : null, Comprobante: "" })
+                });
+
+                if (res.ok) {
+                    const Data = await res.json();
+                    if (Data.success) {
+                        window.location.reload();
+                    } else {
+                        alert(Data.message || 'Error en validación');
+                        if (btn) btn.disabled = false;
+                    }
+                } else {
+                    const err = await res.text();
+                    alert('No se pudo liquidar: ' + err);
+                    if (btn) btn.disabled = false;
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error de conexión. Intente nuevamente.');
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function imprimirCobro(id) {
+            try {
+                const res = await fetch(`/Cobros/ObtenerDatosRecibo?id=${id}`);
+                const Data = await res.json();
+                if(!Data.success) {
+                    alert('Error al obtener Datos');
+                    return;
+                }
+
+                let filasHTML = '';
+                Data.historial.forEach(item => {
+                    filasHTML += `<tr>
+                        <td style="border:1px solid #999; padding:4px 6px;">${item.fecha}</td>
+                        <td style="border:1px solid #999; padding:4px 6px;">${item.metodo}</td>
+                        <td style="border:1px solid #999; padding:4px 6px; text-align:right;">Bs. ${parseFloat(item.monto).toFixed(2)}</td>
+                    </tr>`;
+                });
+
+                if (Data.historial.length === 0) {
+                    filasHTML = `<tr><td colspan="3" style="text-align:center; padding:10px; border:1px solid #999;">No hay pagos registrados</td></tr>`;
+                }
+
+                const zonaImp = document.getElementById('zonaImpresionGlobal');
+                zonaImp.innerHTML = `
+                    <div style="font-family: Arial, sans-serif; padding: 10px;">
+                        <div style="text-align:center; margin-bottom:15px;">
+                            <h2 style="margin:0; font-size:18px; font-weight:900; letter-spacing:-0.5px; color: #000;">STC Services</h2>
+                            <p style="margin:2px 0; font-size:9px; text-transform:uppercase; letter-spacing:2px; color:#444;">Recibo de Cobranza</p>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; border:1px solid #ccc; padding:8px 12px; margin-bottom:10px; font-size:11px;">
+                            <div>
+                                <strong>Operación:</strong> ${Data.operacion}<br>
+                                <strong>Cliente:</strong> ${Data.cliente}
+                            </div>
+                            <div style="text-align:right;">
+                                <strong>Deuda Total:</strong> Bs. ${parseFloat(Data.montoTotal).toFixed(2)}<br>
+                                <strong>Restante:</strong> Bs. ${parseFloat(Data.montoPendiente).toFixed(2)}
+                            </div>
+                        </div>
+
+                        <h4 style="margin:10px 0 5px; font-size:11px;">Historial de Pagos</h4>
+                        <table style="width:100%; border-collapse:collapse; font-size:10px;">
+                            <thead>
+                                <tr>
+                                    <th style="border:1px solid #999; padding:5px; text-align:left; background:#eee;">Fecha</th>
+                                    <th style="border:1px solid #999; padding:5px; text-align:left; background:#eee;">Método</th>
+                                    <th style="border:1px solid #999; padding:5px; text-align:right; background:#eee;">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filasHTML}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" style="border:1px solid #999; padding:8px 6px; text-align:right; font-weight:bold;">Total Pagado:</td>
+                                    <td style="border:1px solid #999; padding:8px 6px; text-align:right; font-weight:bold; font-size:12px;">Bs. ${parseFloat(Data.montoPagado).toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    window.print();
+                }, 300);
+
+            } catch(e) {
+                console.error(e);
+                alert("Error de red");
+            }
+        }
+    </script>
+}

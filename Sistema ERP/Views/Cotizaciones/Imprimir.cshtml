@@ -1,0 +1,125 @@
+@model Sistema_ERP.Models.Cotizacione
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprobante @(Model.NroCorrelativo ?? "#" + Model.IdCotizacion.ToString("D5"))</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #000; margin: 40px; line-height: 1.5; }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo-text { font-size: 24px; font-weight: 800; color: #000; margin: 0; }
+        .doc-info { text-align: right; }
+        .doc-info h1 { margin: 0; font-size: 20px; color: #000; }
+        .doc-info p { margin: 2px 0; color: #000; font-size: 14px; }
+        
+        .client-section { display: grid; grid-template-cols: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .section-title { font-size: 10px; font-weight: 800; color: #000; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #eee; }
+        .client-Data p { margin: 2px 0; font-size: 14px; }
+        .client-Data strong { font-size: 16px; color: #000; }
+ 
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th { background: #fff; text-align: left; padding: 12px 15px; font-size: 12px; color: #000; text-transform: uppercase; border-bottom: 2px solid #000; }
+        td { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #eee; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+ 
+        .totals { margin-left: auto; width: 250px; }
+        .total-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; color: #000; }
+        .total-final { display: flex; justify-content: space-between; padding-top: 15px; margin-top: 10px; border-top: 2px solid #000; font-size: 18px; font-weight: 800; color: #000; }
+ 
+        .footer { margin-top: 100px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ccc; padding-top: 20px; }
+
+        @@media print {
+            .no-print { display: none; }
+            body { margin: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <p class="logo-text">STC Services</p>
+            <p style="font-size: 10px; font-weight: bold; color: #000; letter-spacing: 2px;">INNOVATE FORWARD</p>
+        </div>
+        <div class="doc-info">
+            <h1>@Model.TipoOperacion.ToUpper()</h1>
+            <p><strong>Nº:</strong> @(Model.NroCorrelativo ?? "#" + Model.IdCotizacion.ToString("D5"))</p>
+            <p><strong>Fecha:</strong> @Model.Fecha?.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+    </div>
+
+    <div class="client-section">
+        <div class="client-Data">
+            <div class="section-title">Cliente / Empresa</div>
+            <strong>@Model.IdClienteNavigation?.NombreRazonSocial</strong>
+            <p>NIT/CI: @(Model.IdClienteNavigation?.NitCi ?? "---")</p>
+            <p>Tel: @Model.IdClienteNavigation?.Telefono</p>
+            <p>Dir: @Model.IdClienteNavigation?.Direccion</p>
+        </div>
+        <div class="doc-info">
+            <div class="section-title">Resumen de Operación</div>
+            <p><strong>Estado:</strong> 
+                @if (Model.Estado == "Realizado") { <span>PAGADO</span> }
+                else if (Model.Estado == "Pendiente") { <span>PENDIENTE</span> }
+                else { <span>COTIZADO</span> }
+            </p>
+            @if (Model.IdMetodoPagoNavigation != null)
+            {
+                <p><strong>Método de Pago:</strong> @Model.IdMetodoPagoNavigation.NombreMetodo</p>
+            }
+            @if(Model.EstadoPago == "Por Cobrar") {
+                <p><strong>Saldo Pendiente:</strong> Bs. @Model.TotalConImpuesto?.ToString("N2")</p>
+            }
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Descripción del Item</th>
+                <th class="text-center" style="width: 80px;">Cant</th>
+                <th class="text-right" style="width: 100px;">Unitario</th>
+                <th class="text-right" style="width: 100px;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+                    @foreach(var p in Model.DetalleCotizacionProductos) {
+                <tr>
+                    <td>@p.IdProductoNavigation?.NombreProducto</td>
+                    <td class="text-center">@p.Cantidad</td>
+                    <td class="text-right">Bs. @p.PrecioVendido.ToString("N2")</td>
+                    <td class="text-right">Bs. @((p.Cantidad * p.PrecioVendido).ToString("N2"))</td>
+                </tr>
+            }
+            @foreach(var s in Model.DetalleCotizacionServicios) {
+                <tr>
+                    <td>@s.IdServicioNavigation?.NombreServicio</td>
+                    <td class="text-center">@s.Cantidad</td>
+                    <td class="text-right">Bs. @s.PrecioCobrado.ToString("N2")</td>
+                    <td class="text-right">Bs. @((s.Cantidad * s.PrecioCobrado).ToString("N2"))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="total-row">
+            <span>Subtotal:</span>
+            <span>Bs. @((Model.TotalConImpuesto - (Model.MontoImpuesto ?? 0))?.ToString("N2"))</span>
+        </div>
+        <div class="total-row">
+            <span>I.V.A (@Model.PorcentajeImpuesto%):</span>
+            <span>Bs. @Model.MontoImpuesto?.ToString("N2")</span>
+        </div>
+        <div class="total-final">
+            <span>TOTAL:</span>
+            <span>Bs. @Model.TotalConImpuesto?.ToString("N2")</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Gracias por su confianza. Este documento es un comprobante de operación comercial generado por STC Services INNOVATE FORWARD.</p>
+    </div>
+</body>
+</html>

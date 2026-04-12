@@ -1,0 +1,241 @@
+@model IEnumerable<Sistema_ERP.Models.InventarioResumeViewModel>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Stock";
+
+    var topProductos = Model.OrderByDescending(x => x.ValorTotalStock).ToList();
+    var arrayNombres = Html.Raw(System.Text.Json.JsonSerializer.Serialize(topProductos.Select(x => x.NombreProducto)));
+    var arrayStock = Html.Raw(System.Text.Json.JsonSerializer.Serialize(topProductos.Select(x => x.StockActual)));
+    var arrayValor = Html.Raw(System.Text.Json.JsonSerializer.Serialize(topProductos.Select(x => x.ValorTotalStock)));
+}
+
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-emerald-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-boxes text-emerald-400 text-lg"></i>
+            </span>
+            Stock
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Existencias físicas y valorizaciones al día de hoy</p>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="stat-card">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <i class="bi bi-boxes text-emerald-400"></i>
+        </div>
+        <div>
+            <p class="text-slate-400 text-xs mb-0.5">Total Productos</p>
+            <p class="text-white text-2xl font-bold">@Model.Count()</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <i class="bi bi-exclamation-triangle text-amber-400"></i>
+        </div>
+        <div>
+            <p class="text-slate-400 text-xs mb-0.5">Stock Bajo (&lt;5)</p>
+            <p class="text-amber-400 text-2xl font-bold">@Model.Count(m => m.StockActual < 5)</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+            <i class="bi bi-currency-dollar text-indigo-400"></i>
+        </div>
+        <div>
+            <p class="text-slate-400 text-xs mb-0.5">Valor Total Stock</p>
+            <p class="text-white text-xl font-bold">Bs. @Model.Sum(m => m.ValorTotalStock).ToString("N2")</p>
+        </div>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    
+    <div class="glass-card p-5">
+        <h3 class="text-sm font-bold tracking-wider text-slate-400 uppercase mb-4 flex items-center gap-2">
+            <i class="bi bi-bar-chart-line text-indigo-400"></i> Stock Físico por Producto
+        </h3>
+        <div class="w-full overflow-x-auto overflow-y-hidden custom-scrollbar">
+            <div id="barChart" class="min-w-full"></div>
+        </div>
+    </div>
+    
+    <div class="glass-card p-5">
+        <h3 class="text-sm font-bold tracking-wider text-slate-400 uppercase mb-4 flex items-center gap-2">
+            <i class="bi bi-pie-chart text-emerald-400"></i> Distribución de Valor Monetario
+        </h3>
+        <div id="donutChart" style="min-height: 350px;"></div>
+    </div>
+</div>
+
+
+<div class="glass-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-slate-700/50">
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Producto</th>
+                    <th class="text-center px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Stock</th>
+                    <th class="text-right px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Costo Promedio (Adquisición)</th>
+                    <th class="text-right px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Valor Monetario en Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="table-row">
+                        <td class="px-5 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="bi bi-box text-emerald-400 text-xs"></i>
+                                </div>
+                                <span class="text-white font-medium">@item.NombreProducto</span>
+                            </div>
+                        </td>
+                        <td class="px-5 py-3 text-center">
+                            @if (item.StockActual < 5)
+                            {
+                                <span class="badge badge-red"><i class="bi bi-exclamation-triangle mr-1"></i>@item.StockActual uds.</span>
+                            }
+                            else if (item.StockActual < 15)
+                            {
+                                <span class="badge badge-amber">@item.StockActual uds.</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-green">@item.StockActual uds.</span>
+                            }
+                        </td>
+                        <td class="px-5 py-3 text-right text-amber-400 font-mono text-sm">Bs. @item.CostoCompraPromedio.ToString("N2")</td>
+                        <td class="px-5 py-3 text-right text-white font-semibold font-mono">Bs. @item.ValorTotalStock.ToString("N2")</td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="4" class="px-5 py-14 text-center text-slate-500">
+                        <i class="bi bi-boxes text-4xl block mb-3 opacity-30"></i>
+                        Sin stock registrado. Registra una compra primero en el módulo "Compras".
+                    </td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rawLabels = @arrayNombres;
+            const rawStock = @arrayStock;
+            const rawValor = @arrayValor;
+
+            if (rawLabels.length === 0) return;
+
+            const themeMode = 'Dark';
+            const textColor = '#94a3b8';
+
+
+            const baseWidthPerBar = 40;
+            const minChartWidth = Math.max(document.querySelector('#barChart').parentElement.clientWidth, rawLabels.length * baseWidthPerBar);
+            document.querySelector('#barChart').style.minWidth = minChartWidth + 'px';
+
+            const barOptions = {
+                series: [{ name: 'Stock (uds)', data: rawStock }],
+                chart: { type: 'bar', height: 300, background: 'transparent', toolbar: { show: false } },
+                theme: { mode: themeMode },
+                colors: ['#818cf8', '#6366f1', '#4f46e5'],
+                plotOptions: {
+                    bar: { borderRadius: 4, horizontal: false, columnWidth: '50%', distributed: true }
+                },
+                dataLabels: { enabled: false },
+                xaxis: {
+                    categories: rawLabels,
+                    labels: { style: { colors: textColor }, rotate: -45, trim: true, hideOverlappingLabels: false },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    tickPlacement: 'on'
+                },
+                yaxis: { labels: { style: { colors: textColor } } },
+                grid: { borderColor: '#334155', strokedashArray: 4 },
+                legend: { show: false },
+                tooltip: { theme: themeMode }
+            };
+
+
+            let donutLabels = [];
+            let donutValor = [];
+            const MAX_DONUT_ITEMS = 15;
+            
+
+            const safeRawValor = rawValor.map(v => Math.max(0, Number(v) || 0));
+            
+            if (rawLabels.length > MAX_DONUT_ITEMS) {
+                donutLabels = rawLabels.slice(0, MAX_DONUT_ITEMS);
+                donutValor = safeRawValor.slice(0, MAX_DONUT_ITEMS);
+                const restoSuma = safeRawValor.slice(MAX_DONUT_ITEMS).reduce((a, b) => a + b, 0);
+                donutLabels.push(`Otros (${rawLabels.length - MAX_DONUT_ITEMS})`);
+                donutValor.push(restoSuma);
+            } else {
+                donutLabels = [...rawLabels];
+                donutValor = [...safeRawValor];
+            }
+
+
+            const totalDonutValue = donutValor.reduce((a, b) => a + b, 0);
+            if (totalDonutValue === 0) {
+                donutLabels = ['Sin Valor Monetario'];
+                donutValor = [0.01];
+            }
+
+            const donutOptions = {
+                series: donutValor,
+                labels: donutLabels,
+                chart: { type: 'donut', height: 350, background: 'transparent' },
+                theme: { mode: themeMode },
+
+                colors: ['#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#0ea5e9', '#f43f5e', '#a855f7', '#14b8a6', '#6366f1', '#fbbf24', '#f87171', '#34d399', '#818cf8', '#a78bfa', '#cbd5e1'],
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '70%',
+                            labels: {
+                                show: true,
+                                name: { color: textColor },
+                                value: { 
+                                    color: '#f8fafc', 
+                                    formatter: function (val) { return totalDonutValue === 0 ? 'Bs. 0.00' : 'Bs. ' + parseFloat(val).toFixed(2); } 
+                                },
+                                total: {
+                                    show: true,
+                                    label: 'Valor Total',
+                                    color: textColor,
+                                    formatter: function (w) {
+                                        return 'Bs. ' + totalDonutValue.toFixed(2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                dataLabels: { enabled: false },
+                stroke: { show: true, colors: ['#1e293b'], width: 2 },
+
+                legend: { show: false },
+                tooltip: {
+                    theme: themeMode,
+                    y: { formatter: function (val) { return totalDonutValue === 0 ? 'Bs. 0.00' : 'Bs. ' + parseFloat(val).toFixed(2); } }
+                }
+            };
+
+            new ApexCharts(document.querySelector("#barChart"), barOptions).render();
+            new ApexCharts(document.querySelector("#donutChart"), donutOptions).render();
+        });
+    </script>
+}

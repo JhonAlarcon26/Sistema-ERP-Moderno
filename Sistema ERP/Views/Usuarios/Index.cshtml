@@ -1,0 +1,176 @@
+@model IEnumerable<Sistema_ERP.Models.Usuario>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{ ViewData["Title"] = "Usuarios"; }
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-violet-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-person-badge text-violet-400 text-lg"></i>
+            </span>
+            Usuarios
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">@Model.Count() usuarios en el sistema</p>
+    </div>
+    @if ((await AuthorizationService.AuthorizeAsync(User, "CrearUsuario")).Succeeded)
+    {
+        <a asp-action="Crear" class="btn-primary">
+            <i class="bi bi-person-plus"></i> Nuevo Usuario
+        </a>
+    }
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3 animate-pulse-subtle">
+        <i class="bi bi-check-circle-fill text-lg"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm flex items-center gap-3">
+        <i class="bi bi-info-circle-fill text-lg"></i>
+        <span>@TempData["Info"]</span>
+    </div>
+}
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-person"></i> Usuario</label>
+            <input type="text" id="filtroUsuario" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-shield-lock"></i> Rol</label>
+            <input type="text" id="filtroRol" placeholder="Ej. Admin..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-toggle-on"></i> Estado</label>
+            <select id="filtroEstado" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all appearance-none cursor-pointer">
+                <option value="">Todos los estados</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="tablaUsuarios">
+            <thead>
+                <tr class="border-b border-slate-700/50">
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">#</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Usuario</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Rol</th>
+                    <th class="text-center px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Estado</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider text-[10px]">Creado</th>
+                    <th class="text-right px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider w-32">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr class="border-t border-slate-700/30 table-row">
+                        <td class="px-5 py-3 text-slate-500 text-xs font-mono">@u.IdUsuario</td>
+                        <td class="px-5 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/10">
+                                    <span class="text-violet-400 font-bold text-sm">@u.NombreCompleto[0].ToString().ToUpper()</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-white font-semibold">@u.Username</span>
+                                    <span class="text-slate-500 text-[10px]">@u.NombreCompleto</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-indigo-500/10">@(u.IdRolNavigation?.NombreRol ?? "Sin rol")</span>
+                        </td>
+
+                        <td class="px-5 py-3 text-center">
+                            @if (u.Estado)
+                            {
+                                <span class="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-emerald-500/10"><i class="bi bi-check-circle mr-1"></i>Activo</span>
+                            }
+                            else
+                            {
+                                <span class="bg-red-500/10 text-red-500 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-red-500/10"><i class="bi bi-x-circle mr-1"></i>Inactivo</span>
+                            }
+                        </td>
+                        <td class="px-5 py-3 text-slate-400 text-xs font-mono">@u.FechaCreacion?.ToString("dd/MM/yyyy")</td>
+                        <td class="px-5 py-3 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EditarUsuario")).Succeeded || (await AuthorizationService.AuthorizeAsync(User, "CambiarEstadoUsuario")).Succeeded)
+                                {
+                                    <a asp-action="Editar" asp-route-id="@u.IdUsuario" class="w-8 h-8 flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-all" title="Editar">
+                                        <i class="bi bi-pencil-fill text-xs"></i>
+                                    </a>
+                                }
+                                @if (u.Username != User.Identity?.Name)
+                                {
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarUsuario")).Succeeded)
+                                    {
+                                        <form asp-action="Eliminar" asp-route-id="@u.IdUsuario" method="post" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar">
+                                                <i class="bi bi-trash-fill text-xs"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="bg-violet-500/20 text-violet-300 text-[10px] px-2 py-1 rounded border border-violet-500/30 uppercase font-bold tracking-widest cursor-default">Tú</span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).ready(function() {
+        var table = $('#tablaUsuarios').DataTable({
+            dom: 'rtip',
+            pageLength: 10,
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
+            },
+            order: [[0, 'desc']]
+        });
+
+        $('#filtroUsuario').on('keyup', function() { table.column(1).search(this.value).draw(); });
+        $('#filtroRol').on('keyup', function() { table.column(2).search(this.value).draw(); });
+        $('#filtroEstado').on('change', function() { 
+            var val = this.value;
+            table.column(3).search(val ? '^' + val + '$' : '', true, false).draw(); 
+        });
+    });
+
+    function limpiarFiltros() {
+        $('#filtroUsuario, #filtroRol, #filtroEstado').val('');
+        var table = $('#tablaUsuarios').DataTable();
+        table.search('').columns().search('').draw();
+    }
+</script>
+}
+

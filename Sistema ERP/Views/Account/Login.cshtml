@@ -1,0 +1,101 @@
+@model Sistema_ERP.Models.LoginViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión - STC Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @@keyframes float1 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(30px,40px) scale(1.05);} }
+        @@keyframes float2 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-20px,-30px) scale(1.08);} }
+        @@keyframes fadeUp { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
+        .blob1 { animation: float1 12s ease-in-out infinite; }
+        .blob2 { animation: float2 16s ease-in-out infinite; }
+        .card-anim { animation: fadeUp 0.7s ease-out forwards; }
+        .form-input {
+            width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
+            border-radius:12px; color:#fff; padding:12px 16px; font-size:0.925rem;
+            transition:all .25s; outline:none;
+        }
+        .form-input::placeholder { color: rgba(255,255,255,0.3); }
+        .form-input:focus { background:rgba(255,255,255,0.11); border-color:#6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+        .form-input.error-field { border-color: rgba(239,68,68,0.7); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center overflow-hidden" style="background: radial-gradient(ellipse at 80% 10%, #1e1040 0%, #0f172a 50%, #0a0f1e 100%);">
+
+    
+    <div class="blob1 absolute w-96 h-96 rounded-full opacity-30 pointer-events-none" style="background:radial-gradient(circle,#6366f1,#4f46e5); top:-8%; right:-4%; filter:blur(80px);"></div>
+    <div class="blob2 absolute w-80 h-80 rounded-full opacity-20 pointer-events-none" style="background:radial-gradient(circle,#8b5cf6,#6366f1); bottom:-6%; left:-3%; filter:blur(90px);"></div>
+
+    <div class="card-anim relative z-10 w-full max-w-md mx-4">
+        
+        <div class="rounded-2xl p-8" style="background:rgba(255,255,255,0.05); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 60px -12px rgba(0,0,0,0.6);">
+            
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 overflow-hidden shadow-2xl border-2 border-indigo-500/30 bg-slate-800" style="box-shadow:0 12px 30px rgba(99,102,241,0.4);">
+                    <video autoplay muted loop playsinline class="w-full h-full object-cover">
+                        <source src="~/media/logo_animado.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <h1 class="text-white text-3xl font-bold tracking-tight italic">STC<span class="text-indigo-400 not-italic"> Services</span></h1>
+                <p class="text-indigo-500/80 text-xs font-bold tracking-[0.2em] uppercase mt-1">INNOVATE FORWARD</p>
+            </div>
+
+            <form asp-action="Login" method="post" class="space-y-4">
+                <div asp-validation-summary="ModelOnly" class="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl px-4 py-3 hidden [&:not(:empty)]:block"></div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Usuario</label>
+                    <div class="relative">
+                        <i class="bi bi-person absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input asp-for="Username" class="form-input pl-11" placeholder="Ingresa tu usuario" autocomplete="off" />
+                    </div>
+                    <span asp-validation-for="Username" class="text-red-400 text-xs mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Contraseña</label>
+                    <div class="relative">
+                        <i class="bi bi-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input asp-for="Password" id="passField" class="form-input pl-11 pr-11" placeholder="••••••••" />
+                        <button type="button" onclick="togglePass()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-red-400 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input asp-for="RememberMe" id="remember" type="checkbox" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    <label for="remember" class="text-slate-400 text-sm cursor-pointer">Recordarme</label>
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl text-white font-semibold text-sm mt-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl"
+                        style="background:linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 8px 20px rgba(99,102,241,0.35);">
+                    <i class="bi bi-box-arrow-in-right mr-2"></i>Iniciar Sesión
+                </button>
+            </form>
+
+            <p class="text-center text-slate-600 text-xs mt-6">STC Services v1.0 — Innovate Forward</p>
+        </div>
+    </div>
+
+    <script>
+        function togglePass() {
+            const f = document.getElementById('passField');
+            const i = document.getElementById('eyeIcon');
+            f.type = f.type === 'password' ? 'text' : 'password';
+            i.className = f.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+        }
+    </script>
+</body>
+</html>

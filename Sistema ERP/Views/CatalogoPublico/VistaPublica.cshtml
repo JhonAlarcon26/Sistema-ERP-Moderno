@@ -1,0 +1,266 @@
+@model Sistema_ERP.Models.CatalogosViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catálogo Público - STC Services</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#6366f1', hover: '#4f46e5', light: '#818cf8' },
+                        surface: { DEFAULT: '#0f172a', card: '#1e293b', border: '#334155' },
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card { 
+            background-color: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.4); 
+            border-color: rgba(99, 102, 241, 0.3); 
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+</head>
+<body class="min-h-screen bg-[#020617] text-slate-100 font-sans flex flex-col relative overflow-x-hidden selection:bg-indigo-500/30">
+
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-600/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <header class="w-full bg-slate-900/40 backdrop-blur-lg border-b border-white/5 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/50">
+                    <i class="bi bi-grid-3x3-gap-fill text-white text-lg"></i>
+                </div>
+                <h1 class="text-white font-bold text-xl tracking-tight leading-none">STC Services<span class="text-indigo-400">.Catálogo</span></h1>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <button onclick="requestFullScreen()" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium" title="Pantalla Completa">
+                    <i class="bi bi-arrows-fullscreen"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+        
+        <div class="flex justify-center mb-10">
+            <div class="bg-white/5 backdrop-blur-sm p-1.5 rounded-2xl grid grid-cols-2 gap-2 w-full max-w-md border border-white/10 shadow-2xl">
+                <button onclick="showTab('productos')" id="tab-productos" class="py-3 px-6 rounded-xl font-medium text-sm transition-all duration-300 bg-indigo-600 text-white shadow-lg shadow-indigo-900/40">
+                    <i class="bi bi-box-seam me-2"></i>Productos
+                </button>
+                <button onclick="showTab('servicios')" id="tab-servicios" class="py-3 px-6 rounded-xl font-medium text-sm transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5">
+                    <i class="bi bi-tools me-2"></i>Servicios
+                </button>
+            </div>
+        </div>
+
+        <div id="content-productos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 fade-in">
+            @if (!Model.Productos.Any())
+            {
+                <div class="col-span-full py-20 text-center text-slate-500">
+                    <div class="w-24 h-24 mx-auto bg-slate-800/50 rounded-full flex items-center justify-center mb-6">
+                        <i class="bi bi-box-seam text-4xl opacity-50"></i>
+                    </div>
+                    <p class="text-lg">No hay productos disponibles por el momento.</p>
+                </div>
+            }
+            @foreach (var p in Model.Productos)
+            {
+                <div class="glass-card flex flex-col group cursor-pointer" onclick="openLightbox('@(string.IsNullOrEmpty(p.ImagenUrl) ? "/img/no-image.png" : p.ImagenUrl)', '@p.NombreProducto', 'Bs. @p.PrecioVentaSugerido.ToString("N2")', 'producto')">
+                    <div class="relative h-56 bg-slate-800/40 rounded-t-2xl overflow-hidden flex items-center justify-center p-6">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+                        <img class="max-h-full object-contain filter group-hover:scale-110 transition-transform duration-500 z-0" 
+                             src="@(string.IsNullOrEmpty(p.ImagenUrl) ? "/img/no-image.png" : p.ImagenUrl)" 
+                             alt="@p.NombreProducto" />
+                        
+                        <div class="absolute bottom-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0 text-white">
+                            <div class="bg-indigo-600/90 backdrop-blur-sm w-10 h-10 flex items-center justify-center rounded-full shadow-lg">
+                                <i class="bi bi-zoom-in text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-1 border-t border-slate-700/50 bg-slate-900/20 rounded-b-2xl">
+                        <span class="text-xs font-bold text-indigo-400 tracking-wider mb-2 uppercase">@(p.Categoria ?? "General")</span>
+                        <h3 class="text-white font-bold text-xl mb-3 leading-tight group-hover:text-indigo-300 transition-colors">@p.NombreProducto</h3>
+                        <p class="text-slate-400 text-sm mb-5 line-clamp-2 flex-1">@(p.Descripcion ?? "Sin descripción.")</p>
+                        <div class="flex items-end justify-between mt-auto">
+                            <span class="text-3xl font-black text-white tracking-tight">Bs. <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">@p.PrecioVentaSugerido.ToString("N2")</span></span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div id="content-servicios" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 hidden fade-in">
+            @if (!Model.Servicios.Any())
+            {
+                <div class="col-span-full py-20 text-center text-slate-500">
+                    <div class="w-24 h-24 mx-auto bg-slate-800/50 rounded-full flex items-center justify-center mb-6">
+                        <i class="bi bi-tools text-4xl opacity-50"></i>
+                    </div>
+                    <p class="text-lg">No hay servicios disponibles por el momento.</p>
+                </div>
+            }
+            @foreach (var s in Model.Servicios)
+            {
+                <div class="glass-card flex flex-col group cursor-pointer" onclick="openLightbox('@(string.IsNullOrEmpty(s.ImagenUrl) ? "/img/no-image.png" : s.ImagenUrl)', '@s.NombreServicio', 'Bs. @s.PrecioVenta.ToString("N2")', 'servicio')">
+                    <div class="relative h-56 bg-slate-800/40 rounded-t-2xl overflow-hidden flex items-center justify-center p-6">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+                        <img class="max-h-full object-contain filter group-hover:scale-110 transition-transform duration-500 z-0" 
+                             src="@(string.IsNullOrEmpty(s.ImagenUrl) ? "/img/no-image.png" : s.ImagenUrl)" 
+                             alt="@s.NombreServicio" />
+                        
+                        <div class="absolute bottom-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0 text-white">
+                            <div class="bg-amber-500/90 backdrop-blur-sm w-10 h-10 flex items-center justify-center rounded-full shadow-lg">
+                                <i class="bi bi-zoom-in text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-1 border-t border-slate-700/50 bg-slate-900/20 rounded-b-2xl">
+                        <span class="text-xs font-bold text-amber-500 tracking-wider mb-2 uppercase">@(s.Categoria ?? "Servicio Técnico")</span>
+                        <h3 class="text-white font-bold text-xl mb-3 leading-tight group-hover:text-amber-300 transition-colors">@s.NombreServicio</h3>
+                        <p class="text-slate-400 text-sm mb-5 line-clamp-3 flex-1 leading-relaxed">@(s.Descripcion ?? "Servicio profesional y garantizado.")</p>
+                        <div class="flex items-end justify-between mt-auto">
+                            <span class="text-3xl font-black text-white tracking-tight">Bs. <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">@s.PrecioVenta.ToString("N2")</span></span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+    </main>
+
+    <div class="fixed bottom-6 right-6 z-40 text-white/20 hover:text-white/60 transition-colors">
+        <div class="flex items-center gap-2 font-medium text-xs tracking-widest uppercase">
+            <span>STC Services</span> &bull; <span>Catálogo Público</span>
+        </div>
+    </div>
+
+    <div id="lightboxModal" class="fixed inset-0 z-[999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-[#020617]/95 backdrop-blur-xl" onclick="closeLightbox()"></div>
+        
+        <button onclick="closeLightbox()" class="absolute top-6 right-6 text-slate-500 hover:text-white hover:bg-white/10 transition-all rounded-full w-14 h-14 flex items-center justify-center z-50">
+            <i class="bi bi-x-lg text-2xl"></i>
+        </button>
+
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-12 pointer-events-none">
+            <div class="w-full md:w-2/3 flex items-center justify-center h-[70vh]">
+                <img id="lightboxImg" src="" class="max-w-full max-h-full object-contain filter drop-shadow-2xl pointer-events-auto" alt="Item Ampliado" />
+            </div>
+            <div class="w-full md:w-1/3 text-left pointer-events-auto">
+                <h2 id="lightboxTitle" class="text-4xl lg:text-5xl font-black text-white mb-6 leading-tight"></h2>
+                <div id="lightboxSeparator" class="w-16 h-1.5 bg-indigo-500 rounded-full mb-8"></div>
+                <div id="lightboxPrice" class="text-5xl font-bold bg-clip-text text-transparent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            const btnProd = document.getElementById('tab-productos');
+            const btnServ = document.getElementById('tab-servicios');
+            const contentProd = document.getElementById('content-productos');
+            const contentServ = document.getElementById('content-servicios');
+            
+            contentProd.classList.add('hidden');
+            contentServ.classList.add('hidden');
+            
+            btnProd.className = 'py-3 px-6 rounded-xl font-medium text-sm transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5';
+            btnServ.className = 'py-3 px-6 rounded-xl font-medium text-sm transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5';
+
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.getElementById('content-' + tabName).style.animation = 'fadeIn 0.5s ease-out forwards';
+            
+            if (tabName === 'productos') {
+                btnProd.className = 'py-3 px-6 rounded-xl font-medium text-sm transition-all duration-300 bg-indigo-600 text-white shadow-lg shadow-indigo-900/40';
+            } else {
+                btnServ.className = 'py-3 px-6 rounded-xl font-medium text-sm transition-all duration-300 bg-amber-500 text-white shadow-lg shadow-amber-900/40';
+            }
+        }
+
+        function openLightbox(src, title, price, type) {
+            const modal = document.getElementById('lightboxModal');
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightboxTitle').innerText = title;
+            
+            const priceEl = document.getElementById('lightboxPrice');
+            const sepEl = document.getElementById('lightboxSeparator');
+            
+            priceEl.innerText = price;
+            
+            if (type === 'servicio') {
+                priceEl.className = 'text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-400';
+                sepEl.className = 'w-16 h-1.5 bg-amber-500 rounded-full mb-8';
+            } else {
+                priceEl.className = 'text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400';
+                sepEl.className = 'w-16 h-1.5 bg-indigo-500 rounded-full mb-8';
+            }
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeLightbox() {
+            const modal = document.getElementById('lightboxModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('lightboxImg').src = '';
+            }, 300);
+        }
+        
+        document.addEventListener('keydown', e => { 
+            if(e.key === 'Escape') closeLightbox();
+        });
+
+        function requestFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+    <style>
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</body>
+</html>

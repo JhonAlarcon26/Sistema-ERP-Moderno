@@ -1,0 +1,31 @@
+@model Sistema_ERP.Models.Permiso
+@{ ViewData["Title"] = "Nuevo Permiso"; }
+
+<div class="max-w-xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="Index" class="text-slate-400 hover:text-white transition-colors"><i class="bi bi-arrow-left text-lg"></i></a>
+        <div>
+            <h1 class="text-xl font-bold text-white">Nuevo Permiso</h1>
+            <p class="text-slate-500 text-sm">Define un nuevo permiso del sistema</p>
+        </div>
+    </div>
+    <div class="glass-card p-6">
+        <form asp-action="Crear" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label">Nombre del Permiso</label>
+                <input asp-for="NombrePermiso" class="form-input font-mono" required placeholder="Ej: Ver_Reporte_Ganancias" />
+                <p class="text-slate-500 text-xs mt-1.5">Usa guiones bajos, sin espacios. Ej: <code class="text-indigo-400">Crear_Cotizacion</code></p>
+                <span asp-validation-for="NombrePermiso" class="text-red-400 text-xs mt-1 block"></span>
+            </div>
+            <div>
+                <label class="form-label">Descripción <span class="text-slate-500 font-normal">(opcional)</span></label>
+                <input asp-for="Descripcion" class="form-input" placeholder="¿Para qué sirve este permiso?" />
+            </div>
+            <div class="flex gap-3 pt-2">
+                <a asp-action="Index" class="btn-secondary flex-1 justify-center">Cancelar</a>
+                <button type="submit" class="btn-primary flex-1 justify-center"><i class="bi bi-key"></i> Crear Permiso</button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,237 @@
+@model Sistema_ERP.Models.CobroPendiente
+@{
+    string modo = ViewBag.Modo ?? "historial";
+}
+
+<div class="relative bg-slate-900 rounded-2xl shadow-2xl border border-slate-700/50 w-full max-w-5xl overflow-hidden mx-auto my-4 lg:my-6">
+    
+    <div class="px-10 py-8 border-b border-slate-800 flex justify-between items-center bg-slate-800/30">
+        <div class="flex items-center gap-6">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
+                <i class="bi @(modo == "abono" ? "bi-cash-stack" : "bi-clock-history") text-indigo-400 text-2xl"></i>
+            </div>
+            <div>
+                <h3 class="text-2xl font-black text-white tracking-tight">
+                    @(modo == "abono" ? "Registrar Pago de Deuda" : "Historial Completo de Abonos")
+                </h3>
+                <p class="text-slate-400 font-medium">@Model.IdOperacionNavigation.NroCorrelativo &bull; @Model.IdOperacionNavigation.IdClienteNavigation.NombreRazonSocial</p>
+            </div>
+        </div>
+        <button onclick="closeModal('modalAbono')" class="w-12 h-12 rounded-xl text-slate-400 hover:text-white transition-all bg-slate-800/50 border border-slate-700 hover:border-slate-500 flex items-center justify-center shadow-lg">
+            <i class="bi bi-x-lg text-lg"></i>
+        </button>
+    </div>
+
+    <div class="p-10">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div class="glass-card p-6 border-l-4 border-indigo-500 bg-slate-800/40">
+                <span class="text-slate-500 text-[11px] font-bold uppercase tracking-widest block mb-2">Monto Total de Operación</span>
+                <span class="text-3xl font-black text-white font-mono">Bs. @Model.MontoTotal.ToString("N2")</span>
+            </div>
+            <div class="glass-card p-6 border-l-4 border-emerald-500 bg-emerald-500/5">
+                <span class="text-emerald-500/70 text-[11px] font-bold uppercase tracking-widest block mb-2">Total Abonado</span>
+                <span class="text-3xl font-black text-emerald-400 font-mono">Bs. @Model.MontoPagado.ToString("N2")</span>
+            </div>
+            <div class="glass-card p-6 border-l-4 border-rose-500 bg-rose-500/5 shadow-xl shadow-rose-900/5">
+                <span class="text-rose-400/80 text-[11px] font-bold uppercase tracking-widest block mb-2">Saldo a Liquidar</span>
+                <span class="text-4xl font-black text-rose-400 font-mono">Bs. @Model.MontoPendiente.ToString("N2")</span>
+            </div>
+        </div>
+
+        @if (modo == "abono")
+        {
+            
+            @if (Model.EstadoCobro != "Cobrado")
+            {
+                <div class="bg-slate-800/30 p-10 rounded-3xl border border-indigo-500/20 shadow-inner mb-6">
+                    <h4 class="text-lg font-bold text-white mb-8 flex items-center gap-3">
+                        <i class="bi bi-plus-circle text-indigo-400"></i> Formulario de Cobros y Liquidación
+                    </h4>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Monto a Cobrar (Bs.) <span class="text-rose-500">*</span></label>
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                        <span class="text-slate-500 font-bold text-xl">Bs.</span>
+                                    </div>
+                                    <input type="number" id="inpMontoAbono" 
+                                           max="@Model.MontoPendiente.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)" 
+                                           value=""
+                                           step="0.01" 
+                                           class="w-full bg-slate-900 border-2 border-slate-700/50 rounded-2xl pl-16 pr-6 py-5 font-mono text-3xl text-emerald-400 focus:border-indigo-500 focus:ring-0 transition-all outline-none" 
+                                           placeholder="0.00">
+                                </div>
+                                <p class="text-xs text-slate-500 mt-3 italic">El sistema autocompleta el monto total de la deuda para rapidez operativa.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Método de Pago Recibido <span class="text-rose-400">*</span></label>
+                                <select id="selMetodoPago" class="w-full bg-slate-900 border-2 border-slate-700/50 rounded-2xl px-6 py-5 text-white text-lg focus:border-indigo-500 outline-none transition-all appearance-none cursor-pointer">
+                                    <option value="">-- Seleccionar Método --</option>
+                                    @if (ViewBag.MetodosPago != null) {
+                                        @foreach (var m in ViewBag.MetodosPago) {
+                                            <option value="@m.IdMetodo">@m.NombreMetodo</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-12 flex justify-end gap-4">
+                        <button onclick="closeModal('modalAbono')" class="px-10 py-4 rounded-2xl bg-slate-700/30 text-slate-400 font-bold hover:bg-slate-700 hover:text-white transition-all text-sm uppercase tracking-widest">
+                            Cancelar
+                        </button>
+                        <button onclick="procesarAbono(@Model.IdCobro)" class="px-12 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-black hover:from-indigo-500 hover:to-indigo-400 transition-all shadow-xl shadow-indigo-900/30 text-sm uppercase tracking-widest flex items-center gap-3">
+                            <i class="bi bi-check2-circle text-xl"></i> Confirmar Operación
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="bg-emerald-500/5 border border-emerald-500/20 text-emerald-400 p-12 rounded-3xl mb-6 text-center shadow-lg">
+                    <div class="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
+                        <i class="bi bi-shield-check text-5xl"></i>
+                    </div>
+                    <h5 class="text-2xl font-black text-white mb-2">Deuda Completamente Pagada</h5>
+                    <p class="text-slate-400">Esta cuenta ya ha sido liquidada exitosamente.</p>
+                </div>
+            }
+        }
+        else
+        {
+            
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-10">
+                
+                <div class="bg-slate-800/20 rounded-3xl p-8 border border-slate-700/50 flex flex-col h-full min-h-[400px]">
+                    <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-8">Tendencia de Cobros en el Tiempo</h4>
+                    <div class="flex-1 relative">
+                        <canvas id="chartHistorialPagos"></canvas>
+                    </div>
+                </div>
+
+                
+                <div class="flex flex-col h-full min-h-[400px]">
+                    <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Detalle de Operaciones Realizadas</h4>
+                    @if (Model.HistorialPagos.Any())
+                    {
+                        <div class="overflow-y-auto pr-4 custom-scrollbar flex-1 max-h-[450px]">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-[10px] text-slate-500 uppercase tracking-widest sticky top-0 bg-slate-900 py-3">
+                                    <tr class="border-b border-slate-800">
+                                        <th class="py-3 font-medium">Fecha</th>
+                                        <th class="py-3 font-medium">Método</th>
+                                        <th class="py-3 text-right font-medium">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800/50">
+                                    @foreach (var pago in Model.HistorialPagos.OrderByDescending(p => p.FechaPago))
+                                    {
+                                        <tr class="hover:bg-indigo-500/5 transition-colors group">
+                                            <td class="py-4">
+                                                <span class="text-slate-300 font-bold block">@pago.FechaPago.ToString("dd/MM/yyyy")</span>
+                                                <span class="text-[10px] text-slate-500">@pago.FechaPago.ToString("HH:mm")</span>
+                                            </td>
+                                            <td class="py-4">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                                    <span class="text-slate-300">@(pago.IdMetodoPagoNavigation?.NombreMetodo ?? pago.MetodoPago ?? "Efectivo")</span>
+                                                </div>
+                                                @if(!string.IsNullOrEmpty(pago.Comprobante)){ <span class="text-[9px] text-indigo-400/60 font-bold uppercase mt-1 block">Ref: @pago.Comprobante</span>}
+                                            </td>
+                                            <td class="py-4 text-right">
+                                                <span class="font-mono text-emerald-400 font-black text-md">+ Bs. @pago.MontoAbonado.ToString("N2")</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-10 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700">
+                            <i class="bi bi-inbox text-slate-600 text-3xl block mb-2"></i>
+                            <p class="text-sm text-slate-500 italic">No hay pagos registrados aún.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <script>
+                (function() {
+                    const ctx = document.getElementById('chartHistorialPagos').getContext('2d');
+                    
+
+                    const rawData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.HistorialPagos.OrderBy(p => p.FechaPago).Select(p => new { fecha = p.FechaPago.ToString("dd/MM"), monto = p.MontoAbonado })));
+                    
+                    const labels = rawData.map(d => d.fecha);
+                    const values = rawData.map(d => d.monto);
+
+                    let grad = ctx.createLinearGradient(0, 0, 0, 250);
+                    grad.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+                    grad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Monto Abonado',
+                                data: values,
+                                borderColor: '#10b981',
+                                backgroundColor: 'transparent',
+                                borderWidth: 3,
+                                pointBackgroundColor: '#0f172a',
+                                pointBorderColor: '#10b981',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                                fill: false,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { 
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#0f172a',
+                                    titleColor: '#94a3b8',
+                                    bodyColor: '#fff',
+                                    borderColor: '#1e293b',
+                                    borderWidth: 1,
+                                    callbacks: {
+                                        label: (context) => ` Bs. ${context.raw.toLocaleString('es-BO', { minimumFractionDigits: 2 })}`
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: { 
+                                    beginAtZero: true, 
+                                    grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                                    ticks: { color: '#64748b', font: { size: 10 } }
+                                },
+                                x: { 
+                                    grid: { display: false },
+                                    ticks: { color: '#64748b', font: { size: 10 } }
+                                }
+                            }
+                        }
+                    });
+                })();
+            </script>
+        }
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.2); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.4); }
+</style>

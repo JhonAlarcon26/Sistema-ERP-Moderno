@@ -1,0 +1,174 @@
+@model IEnumerable<Sistema_ERP.Models.MetodoPago>
+@{
+    ViewData["Title"] = "Gestión de Métodos de Pago";
+}
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-emerald-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-wallet2 text-emerald-400 text-lg"></i>
+            </span>
+            Métodos de Pago
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Configura las formas en que tus clientes pueden pagar</p>
+    </div>
+    <button onclick="openModalMetodo()" class="btn-primary">
+        <i class="bi bi-plus-lg"></i> Nuevo Método
+    </button>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3 animate-pulse-subtle">
+        <i class="bi bi-check-circle-fill text-lg"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm flex items-center gap-3">
+        <i class="bi bi-info-circle-fill text-lg"></i>
+        <span>@TempData["Info"]</span>
+    </div>
+}
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div class="md:col-span-2">
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-search"></i> Buscar Método de Pago</label>
+            <input type="text" id="filtroNombre" placeholder="Nombre del método..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table id="tablaMetodos" class="w-full text-sm text-left">
+            <thead>
+                <tr class="border-b border-slate-700/50 bg-slate-800/30">
+                    <th class="px-6 py-4 text-slate-400 font-semibold uppercase tracking-wider">Nombre</th>
+                    <th class="px-6 py-4 text-slate-400 font-semibold uppercase tracking-wider text-center">Estado</th>
+                    <th class="px-6 py-4 text-slate-400 font-semibold uppercase tracking-wider text-right w-24">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/30">
+                @foreach (var item in Model)
+                {
+                    <tr class="hover:bg-slate-800/20 transition-colors group">
+                        <td class="px-6 py-4 font-medium text-white">@item.NombreMetodo</td>
+                        <td class="px-6 py-4 text-center">
+                            @if (item.Estado)
+                            {
+                                <span class="bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-emerald-500/10">ACTIVO</span>
+                            }
+                            else
+                            {
+                                <span class="bg-rose-500/10 text-rose-500 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-rose-500/10">INACTIVO</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4 text-right leading-none">
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="editMetodo(@item.IdMetodo, '@item.NombreMetodo', '@item.Estado.ToString().ToLower()')" 
+                                        class="w-8 h-8 flex items-center justify-center bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-all" title="Editar">
+                                    <i class="bi bi-pencil-fill text-xs"></i>
+                                </button>
+                                <form asp-action="CambiarEstado" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.IdMetodo" />
+                                    <button type="submit" 
+                                            class="w-8 h-8 flex items-center justify-center @(item.Estado ? "bg-emerald-500/10 text-emerald-400 hover:bg-slate-500 hover:text-white" : "bg-rose-500/10 text-rose-400 hover:bg-emerald-500 hover:text-white") rounded-lg transition-all"
+                                            title="@(item.Estado ? "Desactivar" : "Activar")">
+                                        <i class="bi @(item.Estado ? "bi-toggle-on" : "bi-toggle-off") text-sm"></i>
+                                    </button>
+                                </form>
+                                <form asp-action="Eliminar" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.IdMetodo" />
+                                    <button type="submit" class="w-8 h-8 flex items-center justify-center bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white rounded-lg transition-all" title="Eliminar">
+                                        <i class="bi bi-trash3-fill text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div id="modalMetodo" class="modal-overlay hidden">
+    <div class="modal-backdrop" onclick="closeModalMetodo()"></div>
+    <div class="modal-box max-w-sm">
+        <h3 id="modalTitle" class="text-xl font-bold text-white mb-4">Nuevo Método</h3>
+        <form asp-action="Guardar" method="post" class="space-y-4">
+            <input type="hidden" id="IdMetodo" name="IdMetodo" value="0" />
+            <div>
+                <label class="form-label">Nombre del Método</label>
+                <input type="text" id="NombreMetodo" name="NombreMetodo" class="form-input" placeholder="Ej: Transferencia, QR, POS" required />
+            </div>
+
+            <input type="hidden" id="Estado" name="Estado" value="true" />
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeModalMetodo()" class="btn-secondary flex-1">Cancelar</button>
+                <button type="submit" class="btn-primary flex-1">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var table = $('#tablaMetodos').DataTable({
+                dom: 'rtip',
+                language: { url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json" },
+                pageLength: 15
+            });
+
+            $('#filtroNombre').on('keyup', function() { table.search(this.value).draw(); });
+        });
+
+        function limpiarFiltros() {
+            $('#filtroNombre').val('');
+            $('#tablaMetodos').DataTable().search('').draw();
+        }
+
+        function openModalMetodo() {
+            document.getElementById('modalTitle').innerText = 'Nuevo Método';
+            document.getElementById('IdMetodo').value = 0;
+            document.getElementById('NombreMetodo').value = '';
+            document.getElementById('Estado').value = 'true';
+
+            document.getElementById('modalMetodo').classList.remove('hidden');
+        }
+
+        function closeModalMetodo() {
+            document.getElementById('modalMetodo').classList.add('hidden');
+        }
+
+        function editMetodo(id, nombre, estado) {
+            document.getElementById('modalTitle').innerText = 'Editar Método';
+            document.getElementById('IdMetodo').value = id;
+            document.getElementById('NombreMetodo').value = nombre;
+            document.getElementById('Estado').value = estado;
+
+            document.getElementById('modalMetodo').classList.remove('hidden');
+        }
+    </script>
+}

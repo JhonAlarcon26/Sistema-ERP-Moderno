@@ -1,0 +1,140 @@
+@model Sistema_ERP.Models.InventarioProducto
+@{ ViewData["Title"] = "Editar Producto"; }
+
+<div class="max-w-xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="Index" class="text-slate-400 hover:text-white transition-colors"><i class="bi bi-arrow-left text-lg"></i></a>
+        <div>
+            <h1 class="text-xl font-bold text-white">Editar Producto</h1>
+            <p class="text-slate-500 text-sm">Modifica los Datos del producto</p>
+        </div>
+    </div>
+
+    <div class="glass-card p-6">
+        <form asp-action="EditarProducto" method="post" enctype="multipart/form-data" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdProducto" />
+            <div class="relative group">
+                <label class="form-label text-xs uppercase tracking-wider">Nombre del Producto</label>
+                <input asp-for="NombreProducto" class="form-input text-sm py-2" required placeholder="Nombre del producto" />
+                <span asp-validation-for="NombreProducto" class="text-red-400 text-xs mt-1 block"></span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">Categoría</label>
+                    <select asp-for="Categoria" class="form-input select-searchable">
+                        <option value="">-- Seleccionar --</option>
+                        @if (ViewBag.Categorias != null)
+                        {
+                            foreach (var cat in ViewBag.Categorias)
+                            {
+                                <option value="@cat.Nombre">@cat.Nombre</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Código (SN)</label>
+                    <input asp-for="CodigoSN" class="form-input" placeholder="Código de Barras/SN" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label text-amber-400">Stock Actual</label>
+                <input asp-for="Stock" type="number" class="form-input border-amber-500/20" />
+                <span asp-validation-for="Stock" class="text-red-400 text-xs mt-1 block"></span>
+            </div>
+
+            <div class="relative group">
+                <label class="form-label text-xs uppercase tracking-wider text-slate-300">Imagen del Producto (Opcional)</label>
+                <div class="flex items-center gap-4 mt-1">
+                    <div class="w-16 h-16 rounded-xl bg-slate-900/50 border border-slate-700/50 overflow-hidden flex-shrink-0 flex items-center justify-center shadow-inner" style="width: 64px; height: 64px; min-width: 64px; overflow: hidden;">
+                        <img id="imgPreviewEdit" src="@(string.IsNullOrEmpty(Model.ImagenUrl) ? "/img/no-image.png" : Model.ImagenUrl)" class="w-full h-full object-cover text-slate-500" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview"/>
+                    </div>
+                    <div class="flex-1 relative">
+                        <label for="inpImagen" class="cursor-pointer flex items-center justify-between w-full px-4 py-3 bg-slate-900/40 hover:bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 transition-all focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <i class="bi bi-image text-indigo-400"></i>
+                                <span id="txtFileNameEdit" class="truncate text-slate-400">Seleccionar imagen pinchando aquí...</span>
+                            </div>
+                            <span class="bg-indigo-600/20 text-indigo-300 text-xs px-2 py-1 rounded-md border border-indigo-500/30">Explorar</span>
+                        </label>
+                        <input type="file" name="imagen" id="inpImagen" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer hidden" onchange="previewImagenEdit(this, 'imgPreviewEdit', 'txtFileNameEdit')">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-indigo-900/10 rounded-xl p-4 border border-indigo-500/20">
+                <h4 class="text-indigo-400 font-bold text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="bi bi-tag"></i> Datos de Precios
+                </h4>
+                <div class="grid grid-cols-3 gap-4 mb-2">
+                    <label class="form-label text-[10px] text-emerald-400 uppercase tracking-wider font-bold mb-0">Costo Compra (Bs)</label>
+                    <label class="form-label text-[10px] text-indigo-400 uppercase tracking-wider font-bold mb-0">P. Referencia (Bs)</label>
+                    <label class="form-label text-[10px] text-amber-400 uppercase tracking-wider font-bold mb-0">P. Venta (Bs)</label>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <input asp-for="PrecioCompra" type="number" step="0.01" class="form-input text-sm py-2 border-emerald-500/20" />
+                        <span asp-validation-for="PrecioCompra" class="text-red-400 text-[10px] mt-1 block h-3"></span>
+                    </div>
+                    <div>
+                        <input asp-for="PrecioInterno" type="number" step="0.01" class="form-input text-sm py-2" />
+                        <span asp-validation-for="PrecioInterno" class="text-red-400 text-[10px] mt-1 block h-3"></span>
+                    </div>
+                    <div>
+                        <input asp-for="PrecioVentaSugerido" type="number" step="0.01" class="form-input text-sm py-2 border-amber-500/20" />
+                        <span asp-validation-for="PrecioVentaSugerido" class="text-red-400 text-[10px] mt-1 block h-3"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label">Descripción</label>
+                <textarea asp-for="Descripcion" class="form-input" rows="3" placeholder="Descripción..."></textarea>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="window.history.back()" class="btn-secondary flex-1 justify-center">Cancelar</button>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-xl transition-all shadow-lg font-bold flex-1">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+
+        function previewImagenEdit(input, imgId, textId) {
+            var textElem = document.getElementById(textId);
+            if (input.files && input.files[0]) {
+                if(textElem) textElem.textContent = input.files[0].name;
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(imgId).src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                if(textElem) textElem.textContent = "Seleccionar imagen pinchando aquí...";
+                document.getElementById(imgId).src = '@(!string.IsNullOrEmpty(Model.ImagenUrl) ? Model.ImagenUrl : "/img/no-image.png")';
+            }
+        }
+
+
+        function autoFillProveedor(sel) {
+            const opt = sel.options[sel.selectedIndex];
+            const nitci = opt ? (opt.getAttribute('data-nitci') || '') : '';
+            document.getElementById('inpNitCiProveedor').value = nitci;
+        }
+
+
+        window.addEventListener('load', function() {
+            var sel = document.getElementById('selectProveedor');
+            if(sel && sel.value !== '') {
+                autoFillProveedor(sel);
+            }
+        });
+    </script>
+}

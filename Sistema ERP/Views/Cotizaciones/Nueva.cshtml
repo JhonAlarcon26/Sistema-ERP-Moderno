@@ -1,0 +1,693 @@
+@using Sistema_ERP.Models
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model Sistema_ERP.Models.NuevaCotizacionViewModel
+@{
+    ViewData["Title"] = "Nueva Cotización / Venta";
+    var productosJson = System.Text.Json.JsonSerializer.Serialize(ViewBag.Productos);
+    var serviciosJson = System.Text.Json.JsonSerializer.Serialize(ViewBag.Servicios);
+}
+
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-indigo-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi @(ViewBag.CotizacionEdit != null ? "bi-pencil-square" : "bi-cart-plus") text-indigo-400 text-lg"></i>
+            </span>
+            @(ViewBag.CotizacionEdit != null ? "Editar Cotización #" + ((Cotizacione)ViewBag.CotizacionEdit).NroCorrelativo : "Nueva Cotización / Venta")
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Genera documentos comerciales dinámicos</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div class="glass-card p-6 h-full lg:col-span-2">
+            <h5 class="text-white font-bold mb-4 flex items-center gap-2">
+                <i class="bi bi-person-badge text-indigo-400"></i> Información del Cliente
+            </h5>
+            <div class="space-y-4">
+                <div>
+                    <label class="form-label text-xs text-slate-400 uppercase">Seleccionar Cliente</label>
+                    <select id="selectCliente" class="form-input" required>
+                        <option value="">-- Seleccione un Cliente --</option>
+                        @foreach(var c in Model.Clientes)
+                        {
+                            <option value="@c.IdCliente" Data-nit="@c.NitCi" Data-tipo="@c.Tipo" Data-telefono="@c.Telefono" Data-direccion="@c.Direccion">
+                                @c.NombreRazonSocial
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div id="infoClienteAuto" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div class="grid grid-cols-2 gap-3 p-3 bg-slate-900/50 rounded-xl border border-slate-700/50 mt-2">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">NIT / CI</p>
+                            <p id="lblAutoNit" class="text-white text-sm font-medium">---</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tipo</p>
+                            <p id="lblAutoTipo" class="text-white text-sm font-medium">---</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Teléfono</p>
+                            <p id="lblAutoTelefono" class="text-white text-sm font-medium">---</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dirección</p>
+                            <p id="lblAutoDireccion" class="text-white text-sm font-medium">---</p>
+                        </div>
+                    </div>
+                </div>
+                @if ((await AuthorizationService.AuthorizeAsync(User, "CrearCliente")).Succeeded)
+                {
+                    <button type="button" onclick="openModal('modalNuevoCliente')" class="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-600 text-slate-400 hover:text-white hover:border-indigo-500/50 hover:bg-slate-800 transition-all text-sm font-medium flex items-center justify-center gap-2 group">
+                        <i class="bi bi-plus-circle group-hover:scale-110 transition-transform"></i>
+                        Añadir Nuevo Cliente
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="glass-card p-6 h-full flex flex-col justify-between lg:col-span-1">
+            <div>
+                <label class="form-label text-xs text-amber-400/80 font-bold uppercase tracking-wider mb-2 block">Tipo de Pago</label>
+                <select id="IdMetodoPago" class="form-input py-2.5 bg-slate-900/50 border-slate-700 focus:border-amber-500/50 transition-colors">
+                    <option value="">-- Seleccionar --</option>
+                    @if (ViewBag.MetodosPago != null) {
+                        @foreach(var m in ViewBag.MetodosPago) {
+                            <option value="@m.IdMetodo">@m.NombreMetodo</option>
+                        }
+                    }
+                </select>
+                <p class="text-[10px] text-slate-500 mt-2 italic">* Opcional para cotizaciones, requerido para ventas.</p>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-slate-700/50">
+                <label class="form-label text-xs text-indigo-400 font-bold uppercase tracking-wider mb-2 block">Impuesto / I.V.A.</label>
+                <div class="flex items-center gap-4 bg-slate-800/50 p-2 rounded-xl border border-slate-700/50">
+                    <button type="button" id="btnToggleImpuesto" class="btn-secondary py-1.5 px-3 text-xs flex items-center gap-2 transition-all">
+                        <i class="bi bi-percent"></i> <span id="txtBtnImpuesto">Sin Impuestos</span>
+                    </button>
+                    <div id="wrapperImpuesto" class="hidden flex items-center gap-2 animate-in slide-in-from-left-2 duration-200">
+                        <input type="number" id="inpImpuesto" class="form-input w-20 text-right py-1.5 bg-slate-900 border-slate-700" placeholder="0" value="0" min="0" step="0.01">
+                        <span class="text-xs text-slate-500 font-bold">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-12">
+        <div class="glass-card flex flex-col min-h-[500px]">
+            <div class="p-6 border-b border-slate-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h5 class="text-white font-bold flex items-center gap-2">
+                    <i class="bi bi-list-stars text-indigo-400"></i> Detalle de la Operación
+                </h5>
+                <div class="flex items-center gap-2">
+                     <button class="btn-info py-1.5 px-3 text-xs" id="btnAddProducto">
+                         <i class="bi bi-box-seam"></i> + Producto
+                     </button>
+                     <button class="btn-info py-1.5 px-3 text-xs" id="btnAddServicio">
+                         <i class="bi bi-tools"></i> + Servicio
+                     </button>
+                </div>
+            </div>
+
+            <div class="flex-grow overflow-x-auto custom-scrollbar">
+                <table class="w-full text-sm min-w-[600px]" id="tablaDetalles">
+                    <thead>
+                        <tr class="text-left border-b border-slate-700/50 bg-slate-800/20">
+                            <th class="px-5 py-3 text-slate-500 font-medium text-xs uppercase tracking-wider">Tipo</th>
+                            <th class="px-5 py-3 text-slate-500 font-medium text-xs uppercase tracking-wider w-1/2">Descripción</th>
+                            <th class="px-5 py-3 text-slate-500 font-medium text-xs uppercase tracking-wider whitespace-nowrap text-center">Stock</th>
+                            <th class="px-5 py-3 text-slate-500 font-medium text-xs uppercase tracking-wider whitespace-nowrap">Cantidad</th>
+                            <th class="px-5 py-3 text-slate-500 font-medium text-xs uppercase tracking-wider text-right whitespace-nowrap">Precio de Referencia</th>
+                            <th class="px-5 py-3 text-slate-500 font-medium text-xs uppercase tracking-wider text-right whitespace-nowrap">Precio de Venta</th>
+                            <th class="px-5 py-3 text-slate-500 font-medium text-xs uppercase tracking-wider text-right whitespace-nowrap">Subtotal</th>
+                            <th class="px-5 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/30"></tbody>
+                </table>
+            </div>
+            
+            <div class="p-6 bg-slate-900/40 border-t border-slate-700/50 mt-auto">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-8">
+                    <div class="w-full sm:w-auto">
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-1 flex items-center gap-4">
+                            <span>Subtotal: Bs. <span id="lblSubtotal">0.00</span></span>
+                            <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
+                            <span>I.V.A: Bs. <span id="lblImpuesto">0.00</span></span>
+                        </p>
+                        <h3 class="text-4xl font-black text-white leading-none tracking-tight"><span class="text-indigo-500/80 text-xl font-medium mr-1">Bs.</span><span id="lblTotalCalculado">0.00</span></h3>
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-[500px]">
+                        <a href="@Url.Action("Index", "Cotizaciones")" class="flex-1 bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-white font-bold py-4 rounded-2xl transition-all border border-slate-700/50 flex items-center justify-center gap-2">
+                            <i class="bi bi-x-lg"></i> Cerrar
+                        </a>
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "CrearVenta")).Succeeded)
+                        {
+                            <button class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20" onclick="sendOperacion('Cotizacion', 'Borrador')">
+                                <i class="bi bi-file-earmark-text"></i> Cotizar
+                            </button>
+                            <button class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-[0_8px_30px_rgb(99,102,241,0.3)]" onclick="openModalPago()">
+                                <i class="bi bi-box-arrow-in-down text-xl"></i> Guardar
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Modals {
+    
+    <div id="modalOpcionesPago" class="modal-overlay hidden transition-all duration-300" onclick="if(event.target === this) closeModal('modalOpcionesPago')">
+        <div class="modal-box max-w-xl animate-in fade-in zoom-in duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="bi bi-wallet2 text-emerald-400"></i> Confirmar Venta
+                </h3>
+                <button onclick="closeModal('modalOpcionesPago')" class="text-slate-500 hover:text-white transition-colors">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 mb-6">
+                <p class="text-xs text-slate-400 uppercase font-bold tracking-widest mb-1">Total a Cobrar</p>
+                <h2 class="text-3xl font-black text-white">Bs. <span id="lblModalTotal">0.00</span></h2>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="form-label text-xs uppercase tracking-wider text-slate-500">Estado del Pago</label>
+                    <select id="selModalEstadoPago" class="form-input py-2.5 bg-slate-900 border-slate-700 focus:border-emerald-500/50 transition-all" onchange="togglePendienteView()">
+                        <option value="Pagado">Pago Inmediato (Al contado)</option>
+                        <option value="Por Cobrar">Pago Pendiente (Por Cobrar)</option>
+                    </select>
+                </div>
+
+                <div id="panelCobroPendiente" class="hidden space-y-4 pt-4 border-t border-slate-700/30 animate-in slide-in-from-top-2 duration-300">
+                    <div>
+                        <label class="form-label text-xs uppercase tracking-wider text-slate-500">Fecha Límite de Pago</label>
+                        <input type="Date" id="inpModalFechaLimite" class="form-input py-2.5" />
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-6">
+                    <button onclick="closeModal('modalOpcionesPago')" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all border border-slate-700">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmarVentaFinal()" class="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2">
+                        <i class="bi bi-check2-all"></i> Finalizar Venta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="modalNuevoCliente" class="modal-overlay hidden">
+        <div class="modal-backdrop" onclick="closeModal('modalNuevoCliente')"></div>
+        <div class="modal-box max-w-md animate-in fade-in zoom-in duration-300">
+            <h3 class="text-xl font-bold text-white mb-6">Rápido: Nuevo Cliente</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="form-label text-xs uppercase tracking-wider text-slate-500">Tipo de Cliente</label>
+                    <select id="newCliTipo" class="form-input py-2.5 bg-slate-900 border-slate-700">
+                        <option value="Empresa">Empresa</option>
+                        <option value="Particular">Particular</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label text-xs uppercase tracking-wider text-slate-500">Nombre / Razón Social</label>
+                    <input id="newCliNombre" class="form-input py-2.5 bg-slate-900 border-slate-700" placeholder="Ej: Importadora X" />
+                </div>
+                <div>
+                    <label class="form-label text-xs uppercase tracking-wider text-slate-500">NIT / CI</label>
+                    <input id="newCliNit" class="form-input py-2.5 bg-slate-900 border-slate-700" placeholder="1234567" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label text-xs uppercase tracking-wider text-slate-500">Teléfono</label>
+                        <input id="newCliTelefono" class="form-input py-2.5 bg-slate-900 border-slate-700" placeholder="700..." />
+                    </div>
+                    <div>
+                        <label class="form-label text-xs uppercase tracking-wider text-slate-500">Dirección</label>
+                        <input id="newCliDireccion" class="form-input py-2.5 bg-slate-900 border-slate-700" placeholder="Av..." />
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-6 border-t border-slate-700/30 mt-4">
+                    <button onclick="closeModal('modalNuevoCliente')" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="crearClienteRapido()" class="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all shadow-lg shadow-indigo-900/40">
+                        Guardar Cliente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @{
+        var cotEditData = "null";
+        if (ViewBag.CotizacionEdit != null)
+        {
+            var cot = (Cotizacione)ViewBag.CotizacionEdit;
+            var DataObj = new
+            {
+                id = cot.IdCotizacion,
+                idCliente = cot.IdCliente,
+                impuesto = (cot.PorcentajeImpuesto ?? 0m),
+                tipoOperacion = cot.TipoOperacion,
+                estadoPago = cot.EstadoPago,
+                idMetodoPago = cot.IdMetodoPago,
+                productos = cot.DetalleCotizacionProductos.Select(d => new { id = d.IdProducto, cant = d.Cantidad, precio = d.PrecioVendido, stock = d.IdProductoNavigation?.Stock ?? 0 }).ToList(),
+                servicios = cot.DetalleCotizacionServicios.Select(d => new { id = d.IdServicio, cant = d.Cantidad, precio = d.PrecioCobrado }).ToList()
+            };
+            cotEditData = System.Text.Json.JsonSerializer.Serialize(DataObj);
+        }
+    }
+    <script>
+        const cotizacionEdit = @Html.Raw(cotEditData);
+        const catalogData = {
+            productos: @Html.Raw(productosJson),
+            servicios: @Html.Raw(serviciosJson)
+        };
+        
+        const state = {
+            @if (ViewBag.CotizacionEdit != null) {
+                <text>id: @(((Cotizacione)ViewBag.CotizacionEdit).IdCotizacion),</text>
+            } else {
+                <text>id: 0,</text>
+            }
+            items: [],
+            impuestoPorcentaje: 0.00,
+            subtotal: 0.00,
+            impuestoMonto: 0.00,
+            totalFinal: 0.00
+        };
+
+        function validarStock() {
+            for (let item of state.items) {
+                if (item.type === 'PRODUCTO') {
+                    const prodInfo = catalogData.productos.find(p => (p.id || p.IdProducto) == item.id);
+                    const stockMax = prodInfo ? (prodInfo.stock || prodInfo.Stock || 0) : 0;
+                    if (stockMax < item.cantidad) {
+                        Swal.fire({
+                            title: 'Stock Insuficiente',
+                            text: `El producto '${prodInfo ? prodInfo.NombreProducto : 'Desconocido'}' no tiene stock suficiente (Disponible: ${stockMax}, Solicitado: ${item.cantidad})`,
+                            icon: 'error',
+                            confirmButtonColor: '#6366f1',
+                            target: 'body'
+                        });
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function togglePendienteView() {
+            const val = document.getElementById('selModalEstadoPago').value;
+            const panelCobroPendiente = document.getElementById('panelCobroPendiente');
+            if (val === 'Por Cobrar') {
+                panelCobroPendiente.classList.remove('hidden');
+            } else {
+                panelCobroPendiente.classList.add('hidden');
+            }
+        }
+
+        function openModalPago() {
+            if (state.items.length === 0) {
+                Swal.fire('Error', 'Debe agregar al menos un ítem', 'error');
+                return;
+            }
+            if (!document.getElementById('selectCliente').value) {
+                Swal.fire('Error', 'Debe seleccionar un cliente', 'error');
+                return;
+            }
+
+            if (!validarStock()) return;
+
+            const lblModalTotal = document.getElementById('lblModalTotal');
+            const selEstado = document.getElementById('selModalEstadoPago');
+
+            if (lblModalTotal) lblModalTotal.innerText = state.totalFinal.toFixed(2);
+            
+            if (window._editEstadoPago && selEstado) {
+                selEstado.value = window._editEstadoPago;
+                togglePendienteView();
+            }
+
+            openModal('modalOpcionesPago');
+        }
+
+        let isOperacionSubmitting = false;
+
+        async function sendOperacion(tipo, estadoManual = null) {
+            if (isOperacionSubmitting) return;
+            if (!selectCliente.value) { Swal.fire('Error', 'Seleccione un cliente', 'error'); return; }
+            if (state.items.length === 0) { Swal.fire('Error', 'Agregue al menos un ítem', 'error'); return; }
+            
+            if (state.items.some(x => !x.id)) {
+                Swal.fire('Error', 'Asegúrese de seleccionar un producto/servicio para cada fila', 'error');
+                return;
+            }
+
+            if (!validarStock()) return;
+
+            isOperacionSubmitting = true;
+            const actionButtons = document.querySelectorAll('button[onclick*="sendOperacion"], button[onclick*="openModalPago"], button[onclick*="confirmarVentaFinal"]');
+            actionButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i>' + (btn.innerText || 'Procesando...');
+            });
+
+            const selEstadoPago = document.getElementById('selModalEstadoPago');
+            const valEstadoPago = tipo === 'Cotizacion' ? 'Borrador' : (estadoManual || (selEstadoPago ? selEstadoPago.value : 'Pagado'));
+
+            const payload = {
+                IdCotizacion: state.id,
+                IdCliente: parseInt(selectCliente.value),
+                TipoOperacion: tipo,
+                PorcentajeImpuesto: state.impuestoPorcentaje,
+                Subtotal: state.subtotal,
+                IdMetodoPago: parseInt(document.getElementById('IdMetodoPago').value) || null,
+                EstadoPago: valEstadoPago,
+                FechaLimitePago: document.getElementById('inpModalFechaLimite').value || null,
+                DetallesProductos: state.items.filter(x => x.type === 'PRODUCTO').map(x => ({
+                    IdItem: parseInt(x.id),
+                    Cantidad: x.cantidad,
+                    PrecioBase: x.precioUnitario
+                })),
+                DetallesServicios: state.items.filter(x => x.type === 'SERVICIO').map(x => ({
+                    IdItem: parseInt(x.id),
+                    Cantidad: x.cantidad,
+                    PrecioBase: x.precioUnitario
+                }))
+            };
+
+            console.log("Enviando payload corregido:", payload);
+
+            try {
+                const res = await fetch('/Cotizaciones/GuardarAPI', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const Data = await res.json();
+                if (Data.success) {
+                    window.location.href = '/Cotizaciones/Index';
+                } else {
+                    Swal.fire('Error', Data.message || 'Error desconocido', 'error');
+                }
+            } catch (err) {
+                console.error("Error en GuardarAPI:", err);
+                Swal.fire('Error', 'Error de conexión', 'error');
+                isOperacionSubmitting = false;
+                actionButtons.forEach(btn => { btn.disabled = false; });
+            }
+        }
+
+        function confirmarVentaFinal() {
+
+            sendOperacion('Venta');
+        }
+
+        let isClienteSubmitting = false;
+        async function crearClienteRapido() {
+            if (isClienteSubmitting) return;
+            const payload = {
+                Tipo: document.getElementById('newCliTipo').value,
+                NombreRazonSocial: document.getElementById('newCliNombre').value,
+                NitCi: document.getElementById('newCliNit').value,
+                Telefono: document.getElementById('newCliTelefono').value,
+                Direccion: document.getElementById('newCliDireccion').value
+            };
+
+            if (!payload.NombreRazonSocial) {
+                Swal.fire('Error', 'El nombre es obligatorio', 'error');
+                return;
+            }
+
+            isClienteSubmitting = true;
+            const saveBtn = event.currentTarget;
+            const originalHtml = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i>Guardando...';
+
+            try {
+                const res = await fetch('/Cotizaciones/CrearClienteAPI', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const Data = await res.json();
+                if (Data.success) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = Data.cliente.idCliente;
+                    newOpt.text = Data.cliente.nombreRazonSocial;
+                    newOpt.setAttribute('Data-nit', Data.cliente.nitCi || '');
+                    newOpt.setAttribute('Data-tipo', Data.cliente.tipo || '');
+                    newOpt.setAttribute('Data-telefono', Data.cliente.telefono || '');
+                    newOpt.setAttribute('Data-direccion', Data.cliente.direccion || '');
+                    
+                    selectCliente.appendChild(newOpt);
+                    selectCliente.value = Data.cliente.idCliente;
+                    
+
+                    if (selectCliente.tomselect) {
+                        selectCliente.tomselect.addOption({
+                            value: Data.cliente.idCliente,
+                            text: Data.cliente.nombreRazonSocial,
+                            nit: Data.cliente.nitCi,
+                            tipo: Data.cliente.tipo,
+                            telefono: Data.cliente.telefono,
+                            direccion: Data.cliente.direccion
+                        });
+                        selectCliente.tomselect.setValue(Data.cliente.idCliente);
+                    }
+
+                    const event = new Event('change', { bubbles: true });
+                    selectCliente.dispatchEvent(event);
+                    
+                    closeModal('modalNuevoCliente');
+
+                } else {
+                    Swal.fire('Error', 'No se pudo crear el cliente', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Error de red', 'error');
+            } finally {
+                isClienteSubmitting = false;
+                if (typeof saveBtn !== 'undefined') {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalHtml;
+                }
+            }
+        }
+
+        const inpImpuesto = document.getElementById('inpImpuesto');
+        const selectCliente = document.getElementById('selectCliente');
+        const infoClienteAuto = document.getElementById('infoClienteAuto');
+        const lblAutoNit = document.getElementById('lblAutoNit');
+        const lblAutoTipo = document.getElementById('lblAutoTipo');
+        const lblAutoTelefono = document.getElementById('lblAutoTelefono');
+        const lblAutoDireccion = document.getElementById('lblAutoDireccion');
+        const tablaBody = document.querySelector('#tablaDetalles tbody');
+        const lblSubtotal = document.getElementById('lblSubtotal');
+        const lblImpuesto = document.getElementById('lblImpuesto');
+        const lblTotal = document.getElementById('lblTotalCalculado');
+
+
+
+        const IdMetodoPago = document.getElementById('IdMetodoPago');
+
+
+        selectCliente.addEventListener('change', (e) => {
+            const opt = e.target.options[e.target.selectedIndex];
+            if(e.target.value) {
+                lblAutoNit.innerText = opt.getAttribute('Data-nit') || '---';
+                lblAutoTipo.innerText = opt.getAttribute('Data-tipo');
+                lblAutoTelefono.innerText = opt.getAttribute('Data-telefono') || '---';
+                lblAutoDireccion.innerText = opt.getAttribute('Data-direccion') || '---';
+                infoClienteAuto.classList.remove('hidden');
+            } else { infoClienteAuto.classList.add('hidden'); }
+        });
+
+        const btnToggleImpuesto = document.getElementById('btnToggleImpuesto');
+        const wrapperImpuesto = document.getElementById('wrapperImpuesto');
+        const txtBtnImpuesto = document.getElementById('txtBtnImpuesto');
+
+        btnToggleImpuesto.addEventListener('click', () => {
+            const isHidden = wrapperImpuesto.classList.contains('hidden');
+            if(isHidden) {
+                wrapperImpuesto.classList.remove('hidden');
+                txtBtnImpuesto.innerText = 'Con Impuesto:';
+                btnToggleImpuesto.classList.replace('btn-secondary', 'btn-primary');
+            } else {
+                wrapperImpuesto.classList.add('hidden');
+                txtBtnImpuesto.innerText = 'Sin Impuestos';
+                btnToggleImpuesto.classList.replace('btn-primary', 'btn-secondary');
+                inpImpuesto.value = 0; state.impuestoPorcentaje = 0; renderTable();
+            }
+        });
+
+        inpImpuesto.addEventListener('input', (e) => {
+            let val = parseFloat(e.target.value) || 0;
+            state.impuestoPorcentaje = val; renderTable();
+        });
+
+        document.getElementById('btnAddProducto').addEventListener('click', () => {
+            console.log('Agregando producto');
+            addItem('PRODUCTO');
+        });
+        document.getElementById('btnAddServicio').addEventListener('click', () => {
+            console.log('Agregando servicio');
+            addItem('SERVICIO');
+        });
+
+        function addItem(tipo, id = null, cant = 1, precio = 0) {
+            state.items.push({ type: tipo, id: id, cantidad: cant, precioUnitario: precio });
+            renderTable();
+        }
+
+        function renderTable() {
+            tablaBody.innerHTML = ''; let calcSubtotal = 0;
+            if (state.items.length === 0) {
+                tablaBody.innerHTML = `<tr><td colspan="8" class="px-5 py-20 text-center text-slate-500 italic">No hay ítems agregados</td></tr>`;
+                updateTotals(0); return;
+            }
+            state.items.forEach((item, index) => {
+                const tr = document.createElement('tr'); tr.className = "table-row group";
+                let opciones = item.type === 'PRODUCTO' ? catalogData.productos : catalogData.servicios;
+                let selectHtml = `<select class="form-input py-1.5 bg-slate-800 border-slate-700 select-item w-full min-w-[250px]" Data-index="${index}"><option value="">Seleccione...</option>`;
+                opciones.forEach(opt => {
+                    const idOpt = item.type === 'PRODUCTO' ? (opt.id || opt.IdProducto) : (opt.id || opt.IdServicio);
+                    const nombreOpt = item.type === 'PRODUCTO' ? (opt.nombre || opt.NombreProducto) : (opt.nombre || opt.NombreServicio);
+                    const stockOpt = item.type === 'PRODUCTO' ? (opt.stock || opt.Stock || 0) : 0;
+                    selectHtml += `<option value="${idOpt}" ${item.id == idOpt ? 'selected' : ''}>${nombreOpt}</option>`;
+                });
+                selectHtml += `</select>`;
+                let precioBase = item.precioUnitario;
+                let precioReferencia = 0;
+                const itemCat = item.id ? opciones.find(x => (item.type === 'PRODUCTO' ? (x.id || x.IdProducto) : (x.id || x.IdServicio)) == item.id) : null;
+                
+                if(item.id && precioBase === 0) {
+                    if(itemCat) precioBase = item.type === 'PRODUCTO' ? (itemCat.precioVentaSugerido || itemCat.PrecioVentaSugerido || 0) : (itemCat.precioVenta || itemCat.PrecioVenta || 0);
+                }
+                if (itemCat && item.type === 'PRODUCTO') {
+                    precioReferencia = itemCat.precioInterno || itemCat.PrecioInterno || 0;
+                }
+                
+                const stockActual = item.type === 'PRODUCTO' && itemCat ? (itemCat.stock || itemCat.Stock || 0) : '-';
+                
+                item.precioUnitario = precioBase; 
+                const subT = item.precioUnitario * item.cantidad; calcSubtotal += subT;
+                tr.innerHTML = `<td class="px-5 py-3"><span class="badge ${item.type === 'PRODUCTO' ? 'badge-blue' : 'bg-slate-700/50 text-slate-300'}">${item.type === 'PRODUCTO' ? 'PROD' : 'SERV'}</span></td>
+                    <td class="px-5 py-3">${selectHtml}</td>
+                    <td class="px-5 py-3 text-center font-bold ${item.type === 'PRODUCTO' ? 'text-white' : 'text-slate-500'}">${stockActual}</td>
+                    <td class="px-5 py-3"><input type="number" min="1" class="form-input py-1.5 bg-slate-800 border-slate-700 w-20 text-center input-cantidad" Data-index="${index}" value="${item.cantidad}"></td>
+                    <td class="px-5 py-3 text-right font-mono text-slate-400 text-xs">${item.type === 'PRODUCTO' && item.id ? 'Bs. ' + precioReferencia.toFixed(2) : '-'}</td>
+                    <td class="px-5 py-3 text-right"><input type="number" step="0.01" min="0" class="form-input py-1.5 bg-slate-800 border-slate-700 w-24 text-right font-mono input-precio" Data-index="${index}" value="${precioBase.toFixed(2)}"></td>
+                    <td class="px-5 py-3 text-right font-bold text-white font-mono">${subT.toFixed(2)}</td>
+                    <td class="px-5 py-3 text-right"><button class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all btn-remove" Data-index="${index}"><i class="bi bi-trash-fill text-xs"></i></button></td>`;
+                tablaBody.appendChild(tr);
+            });
+            updateTotals(calcSubtotal); attachListeners();
+        }
+
+        function updateTotals(subT) {
+            state.subtotal = subT; state.impuestoMonto = subT * (state.impuestoPorcentaje / 100); state.totalFinal = subT + state.impuestoMonto;
+            lblSubtotal.innerText = state.subtotal.toFixed(2); lblImpuesto.innerText = state.impuestoMonto.toFixed(2); lblTotal.innerText = state.totalFinal.toFixed(2);
+        }
+
+        function attachListeners() {
+            document.querySelectorAll('.select-item').forEach(el => {
+                el.addEventListener('change', (e) => { 
+                    const idx = parseInt(e.target.dataset.index);
+                    const nuevoId = parseInt(e.target.value);
+                    const item = state.items[idx];
+                    
+                    if (nuevoId) {
+                        const idxExistente = state.items.findIndex((x, i) => i !== idx && x.type === item.type && x.id === nuevoId);
+                        if (idxExistente !== -1) {
+                            state.items[idxExistente].cantidad += (item.cantidad || 1);
+                            state.items.splice(idx, 1);
+                            renderTable();
+                            return;
+                        }
+                    }
+                    
+                    item.id = nuevoId; 
+                    item.precioUnitario = 0; 
+                    renderTable(); 
+                });
+
+
+                if (!el.tomselect && typeof TomSelect !== 'undefined') {
+                    new TomSelect(el, {
+                        create: false,
+                        sortField: { field: "text", direction: "asc" },
+                        placeholder: "Escriba para buscar...",
+
+                        wrapperClass: 'ts-wrapper select-searchable form-input',
+                        dropdownClass: 'ts-dropdown select-searchable'
+                    });
+                }
+            });
+            document.querySelectorAll('.input-cantidad').forEach(el => el.addEventListener('change', (e) => { state.items[e.target.dataset.index].cantidad = parseInt(e.target.value) || 1; renderTable(); }));
+            document.querySelectorAll('.input-precio').forEach(el => el.addEventListener('change', (e) => { state.items[e.target.dataset.index].precioUnitario = parseFloat(e.target.value) || 0; renderTable(); }));
+            document.querySelectorAll('.btn-remove').forEach(el => el.addEventListener('click', (e) => { state.items.splice(e.currentTarget.dataset.index, 1); renderTable(); }));
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        if (cotizacionEdit) {
+            console.log("Cargando Datos de edición para cliente:", cotizacionEdit.idCliente);
+            selectCliente.value = cotizacionEdit.idCliente;
+
+            const event = new Event('change', { bubbles: true });
+            selectCliente.dispatchEvent(event);
+
+            if (cotizacionEdit.impuesto > 0) {
+                state.impuestoPorcentaje = cotizacionEdit.impuesto; 
+                inpImpuesto.value = cotizacionEdit.impuesto;
+                wrapperImpuesto.classList.remove('hidden'); 
+                txtBtnImpuesto.innerText = 'Con Impuesto:'; 
+                btnToggleImpuesto.classList.replace('btn-secondary', 'btn-primary');
+            }
+            cotizacionEdit.productos.forEach(p => addItem('PRODUCTO', p.id, p.cant, p.precio));
+            cotizacionEdit.servicios.forEach(s => addItem('SERVICIO', s.id, s.cant, s.precio));
+            
+
+            const dbStatus = cotizacionEdit.estadoPago;
+            const selModalEstadoPagoEdit = document.getElementById('selModalEstadoPago');
+            if (selModalEstadoPagoEdit) {
+                selModalEstadoPagoEdit.value = (dbStatus === 'Pendiente' || dbStatus === 'Por Cobrar') ? 'Por Cobrar' : 'Pagado';
+                togglePendienteView();
+            }
+            if (cotizacionEdit.idMetodoPago) {
+                IdMetodoPago.value = cotizacionEdit.idMetodoPago;
+            }
+            renderTable();
+        }
+
+
+        const idClientePre = "@(ViewBag.IdClientePreseleccionado ?? "")";
+        if (idClientePre && !cotizacionEdit) {
+            selectCliente.value = idClientePre;
+            const eventPre = new Event('change', { bubbles: true });
+            selectCliente.dispatchEvent(eventPre);
+        }
+
+
+        renderTable();
+    </script>
+}

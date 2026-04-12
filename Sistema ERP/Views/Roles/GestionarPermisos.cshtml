@@ -1,0 +1,123 @@
+@model Sistema_ERP.Models.RolPermisoViewModel
+@{ ViewData["Title"] = $"Permisos - {Model.Rol.NombreRol}"; }
+
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-cyan-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-key text-cyan-400 text-lg"></i>
+            </span>
+            Permisos de @Model.Rol.NombreRol
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Configura detalladamente lo que este perfil puede hacer</p>
+    </div>
+    <div class="flex gap-3">
+        <button type="button" class="btn-secondary py-1.5 px-3 text-xs" onclick="selectAll(true)"><i class="bi bi-check-all"></i> Seleccionar Todo</button>
+        <button type="button" class="btn-secondary py-1.5 px-3 text-xs" onclick="selectAll(false)"><i class="bi bi-x"></i> Limpiar Todo</button>
+    </div>
+</div>
+
+<form asp-action="GestionarPermisos" asp-route-id="@Model.Rol.IdRol" method="post" class="space-y-8">
+    @Html.AntiForgeryToken()
+    
+    <div class="glass-card mb-8 p-4 border border-slate-700/50 bg-slate-800/40">
+        <div class="relative group">
+            <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors"></i>
+            <input type="text" id="searchPermisos" onkeyup="filterPermisos()" placeholder="Buscar permiso por nombre o descripción..." 
+                   class="w-full bg-slate-900/80 border border-slate-700 text-white text-sm rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all placeholder-slate-600">
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="permisosContainer">
+        @foreach (var p in Model.Permisos)
+        {
+            <label class="relative cursor-pointer group permiso-card" Data-name="@p.NombrePermiso" Data-desc="@(p.Descripcion ?? "")">
+                <input type="checkbox" name="permisosSeleccionados" value="@p.IdPermiso" class="sr-only peer permiso-chk" @(p.Seleccionado ? "checked" : "")>
+                <div class="glass-card p-5 h-full border-slate-700/50 peer-checked:border-cyan-500/50 peer-checked:bg-cyan-500/5 transition-all hover:border-slate-600">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center peer-checked:bg-cyan-500 peer-checked:text-white text-slate-500 group-hover:scale-110 transition-all peer-checked:scale-110 peer-checked:shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-white mb-1">@p.NombrePermiso</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">@(p.Descripcion ?? "Sin descripción detallada")</p>
+                        </div>
+                    </div>
+                </div>
+            </label>
+        }
+    </div>
+
+    @if (!Model.Permisos.Any())
+    {
+        <div class="py-20 glass-card flex flex-col items-center justify-center text-slate-500">
+            <i class="bi bi-slash-circle text-5xl mb-4 opacity-20"></i>
+            <p>No se encontraron permisos definidos</p>
+        </div>
+    }
+
+<style>
+    .btn-digital-permissions {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+        color: #ffffff !important;
+        font-size: 0.85rem !important;
+        font-weight: 900 !important;
+        padding: 0.8rem 1.8rem !important;
+        border-radius: 0.85rem !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 8px 20px -5px rgba(8, 145, 178, 0.5) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        justify-content: center !important;
+    }
+    .btn-digital-permissions:hover {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+        box-shadow: 0 0 25px rgba(6, 182, 212, 0.6) !important;
+        transform: translateY(-2px) scale(1.03) !important;
+        color: #ffffff !important;
+    }
+</style>
+
+    <div class="flex items-center justify-between p-6 glass-card bg-slate-900/80 sticky bottom-6 z-10 shadow-2xl mt-8 border-t border-cyan-500/20">
+        <a asp-action="Index" class="btn-secondary py-3 px-6">Cancelar</a>
+        <button type="submit" class="btn-digital-permissions">
+            <i class="bi bi-save"></i> GUARDAR CAMBIOS
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+    function filterPermisos() {
+        const input = document.getElementById('searchPermisos');
+        const filter = input.value.toLowerCase();
+        const cards = document.querySelectorAll('.permiso-card');
+        
+        cards.forEach(card => {
+            const name = card.getAttribute('Data-name').toLowerCase();
+            const desc = card.getAttribute('Data-desc').toLowerCase();
+            if (name.includes(filter) || desc.includes(filter)) {
+                card.style.display = "";
+            } else {
+                card.style.display = "none";
+            }
+        });
+    }
+
+    function selectAll(checked) {
+        document.querySelectorAll('.permiso-chk').forEach(chk => {
+
+            const card = chk.closest('.permiso-card');
+            if (card.style.display !== "none") {
+                chk.checked = checked;
+            }
+        });
+    }
+</script>
+}

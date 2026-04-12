@@ -1,0 +1,256 @@
+@model ReporteStockViewModel
+@{
+    ViewData["Title"] = "Reporte de Stock";
+}
+
+<div class="flex flex-col gap-6">
+    
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                <span class="w-10 h-10 bg-amber-600/20 rounded-xl flex items-center justify-center">
+                    <i class="bi bi-box-seam text-amber-400 text-xl"></i>
+                </span>
+                Reporte de Stock
+            </h1>
+            <p class="text-slate-500 text-sm mt-1">Control de inventario, existencias actuales y valorización estratégica.</p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <a asp-action="ExportarStockExcel" class="btn-secondary !bg-emerald-600/10 !text-emerald-400 !border-emerald-600/20 hover:!bg-emerald-600 hover:!text-white">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <a asp-action="ExportarStockPDF" class="btn-secondary !bg-red-600/10 !text-red-400 !border-red-600/20 hover:!bg-red-600 hover:!text-white">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </a>
+        </div>
+    </div>
+
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat-card">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                <i class="bi bi-safe2 text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Valorización Total</p>
+                <h3 class="text-2xl font-bold text-white">@Model.ValorTotalInventario.ToString("C")</h3>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-400">
+                <i class="bi bi-exclamation-triangle text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Items en Crítico</p>
+                <h3 class="text-2xl font-bold text-white">@Model.ItemsEnCritico</h3>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                <i class="bi bi-box-seam text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Productos</p>
+                <h3 class="text-2xl font-bold text-white">@Model.TotalProductos</h3>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                <i class="bi bi-tag text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Tipo Principal</p>
+                <h3 class="text-xl font-bold text-white truncate max-w-[150px]">@Model.CategoriaDominante</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="glass-card p-6 lg:col-span-1">
+            <h3 class="text-lg font-semibold text-white mb-6">Top 15 Productos</h3>
+            <div class="h-[300px] flex items-center justify-center">
+                <canvas id="stockDistributionChart"></canvas>
+            </div>
+        </div>
+
+        
+        <div class="glass-card lg:col-span-2 overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-slate-700/50 flex items-center justify-between bg-slate-800/30">
+                <h3 class="text-lg font-semibold text-white">Resumen</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="limpiarFiltros()" class="btn-secondary !py-1.5 !px-3 !text-xs !bg-slate-700/50 hover:!bg-slate-600">
+                        <i class="bi bi-eraser"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+
+            
+            <div class="p-4 bg-slate-900/30 border-b border-slate-700/50">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Producto</label>
+                        <div class="relative group">
+                            <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs transition-colors group-focus-within:text-indigo-400"></i>
+                            <input type="text" id="filtroProducto" placeholder="Buscar nombre..." 
+                                   class="w-full bg-slate-950/50 border-slate-700/50 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-600 transition-all">
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Tipo</label>
+                        <div class="relative group">
+                            <i class="bi bi-tag absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs transition-colors group-focus-within:text-emerald-400"></i>
+                            <input type="text" id="filtroCategoria" placeholder="Filtrar tipo..." 
+                                   class="w-full bg-slate-950/50 border-slate-700/50 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 placeholder:text-slate-600 transition-all">
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Estado</label>
+                        <div class="relative group">
+                            <i class="bi bi-funnel absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs transition-colors group-focus-within:text-amber-400"></i>
+                            <select id="filtroEstado" class="w-full bg-slate-950/50 border-slate-700/50 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 transition-all appearance-none">
+                                <option value="">Todos los estados</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Bajo">Bajo</option>
+                                <option value="Crítico">Crítico</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+                <table class="w-full text-left border-collapse" id="stockTable">
+                    <thead class="sticky top-0 bg-slate-900 border-b border-slate-700">
+                        <tr class="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
+                            <th class="px-4 py-3">Nombre</th>
+                            <th class="px-4 py-3">Tipo</th>
+                            <th class="px-4 py-3 text-right">Cant.</th>
+                            <th class="px-4 py-3 text-right">Valor</th>
+                            <th class="px-4 py-3 text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        @foreach (var item in Model.Detalles)
+                        {
+                            <tr class="table-row">
+                                <td class="px-4 py-3 text-white text-sm font-medium">@item.Nombre</td>
+                                <td class="px-4 py-3 text-slate-400 text-xs">@item.Tipo</td>
+                                <td class="px-4 py-3 text-right font-mono text-sm">@item.Cantidadactual</td>
+                                <td class="px-4 py-3 text-right text-indigo-400 font-bold font-mono text-sm">@item.ValorInventario.ToString("N2")</td>
+                                <td class="px-4 py-3 text-center">
+                                    @if (item.Estado == "Crítico")
+                                    {
+                                        <span class="badge-red py-0.5 px-2">Crítico</span>
+                                    }
+                                    else if (item.Estado == "Bajo")
+                                    {
+                                        <span class="badge-amber py-0.5 px-2">Bajo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-green py-0.5 px-2">Normal</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartLabels = @Html.Raw(Json.Serialize(Model.ChartData.Select(d => d.Label)));
+        const chartValues = @Html.Raw(Json.Serialize(Model.ChartData.Select(d => d.Value)));
+
+        const ctx = document.getElementById('stockDistributionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartValues,
+                    backgroundColor: [
+                        '#10b981', '#6366f1', '#f59e0b', '#ef4444', '#06b6d4', 
+                        '#8b5cf6', '#ec4899', '#f97316', '#14b8a6', '#3b82f6',
+                        '#fbbf24', '#f43f5e', '#a855f7', '#2dd4bf', '#a3e635'
+                    ],
+                    borderWidth: 2,
+                    borderColor: 'rgba(15, 23, 42, 0.5)',
+                    hoverOffset: 20
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { 
+                            color: '#94a3b8', 
+                            font: { size: 9 }, 
+                            usePointStyle: true, 
+                            padding: 12,
+                            boxWidth: 8
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed !== null) {
+                                    label += context.parsed + ' unidades';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const filtroProducto = document.getElementById('filtroProducto');
+        const filtroCategoria = document.getElementById('filtroCategoria');
+        const filtroEstado = document.getElementById('filtroEstado');
+        const tableRows = document.querySelectorAll('#stockTable tbody tr');
+
+        function filterTable() {
+            const prodText = filtroProducto.value.toLowerCase();
+            const catText = filtroCategoria.value.toLowerCase();
+            const estText = filtroEstado.value.toLowerCase();
+
+            tableRows.forEach(row => {
+                const nombre = row.cells[0].innerText.toLowerCase();
+                const categoria = row.cells[1].innerText.toLowerCase();
+                const estado = row.cells[4].innerText.trim().toLowerCase();
+
+                const matchProd = !prodText || nombre.includes(prodText);
+                const matchCat = !catText || categoria.includes(catText);
+                const matchEst = !estText || estado === estText;
+
+                row.style.display = (matchProd && matchCat && matchEst) ? '' : 'none';
+            });
+        }
+
+        function limpiarFiltros() {
+            filtroProducto.value = '';
+            filtroCategoria.value = '';
+            filtroEstado.value = '';
+            filterTable();
+        }
+
+        filtroProducto.addEventListener('input', filterTable);
+        filtroCategoria.addEventListener('input', filterTable);
+        filtroEstado.addEventListener('change', filterTable);
+    </script>
+}

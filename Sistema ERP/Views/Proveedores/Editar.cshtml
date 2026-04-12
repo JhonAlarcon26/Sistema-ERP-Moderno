@@ -1,0 +1,152 @@
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@model Sistema_ERP.Models.Proveedor
+@{ 
+    ViewData["Title"] = "Editar Proveedor"; 
+    bool puedeVerMapa = (await AuthorizationService.AuthorizeAsync(User, "VerMapaProveedor")).Succeeded;
+}
+
+<div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="Index" class="text-slate-400 hover:text-white transition-colors"><i class="bi bi-arrow-left text-lg"></i></a>
+        <div>
+            <h1 class="text-xl font-bold text-white">Editar Proveedor</h1>
+            <p class="text-slate-500 text-sm">Gestiona los Datos y ubicación de @Model.Nombre</p>
+        </div>
+    </div>
+
+    <form asp-action="Editar" method="post" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="IdProveedor" />
+        
+        
+        <div class="lg:col-span-5 space-y-6">
+            <div class="glass-card p-6 space-y-5">
+                <h3 class="text-white font-bold flex items-center gap-2 border-b border-white/5 pb-3">
+                    <i class="bi bi-pencil-square text-amber-400"></i> Información del Proveedor
+                </h3>
+                
+                <div>
+                    <label class="form-label text-xs uppercase tracking-wider text-slate-400 mb-2">Nombre / Empresa</label>
+                    <input asp-for="Nombre" class="form-input" required />
+                    <span asp-validation-for="Nombre" class="text-red-400 text-xs mt-1 block"></span>
+                </div>
+
+                <div>
+                    <label class="form-label text-xs uppercase tracking-wider text-slate-400 mb-2">Tipo de Proveedor</label>
+                    <input asp-for="TipoProveedor" class="form-input" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label text-xs uppercase tracking-wider text-slate-400 mb-2">NIT / CI</label>
+                        <input asp-for="NitCi" class="form-input" />
+                    </div>
+                    <div>
+                        <label class="form-label text-xs uppercase tracking-wider text-slate-400 mb-2">Teléfono</label>
+                        <input asp-for="Telefono" class="form-input" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label text-xs uppercase tracking-wider text-slate-400 mb-2">Dirección <span class="text-indigo-400/80">(Autocompleta moviendo el mapa)</span></label>
+                    <div class="relative group">
+                        <input asp-for="Direccion" id="inputDireccion" class="form-input pr-10" />
+                        <button type="button" onclick="mapa.buscarDireccion()" class="absolute right-2 top-1.5 p-1.5 text-slate-500 hover:text-indigo-400 transition-colors">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label text-[10px] uppercase text-slate-500">Latitud</label>
+                        <input asp-for="Latitud" id="inputLat" class="form-input text-xs" />
+                    </div>
+                    <div>
+                        <label class="form-label text-[10px] uppercase text-slate-500">Longitud</label>
+                        <input asp-for="Longitud" id="inputLng" class="form-input text-xs" />
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4 border-t border-white/5">
+                    <a asp-action="Index" class="btn-secondary flex-1 justify-center py-3">Cancelar</a>
+                    <button type="submit" class="btn-primary flex-1 justify-center py-3"><i class="bi bi-check-lg"></i> Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+
+        @if (puedeVerMapa)
+        {
+            
+            <div class="lg:col-span-7 space-y-4">
+                <div class="glass-card p-2 h-full min-h-[500px] flex flex-col relative group">
+                    <div class="absolute top-4 right-4 z-[1000] flex flex-wrap gap-2 justify-end max-w-[300px] pointer-events-none group-hover:pointer-events-auto opacity-40 group-hover:opacity-100 transition-all duration-500">
+                        <span class="text-[10px] font-bold text-white uppercase bg-slate-900/80 px-3 py-1 rounded-full mb-1 w-full text-right border border-white/10">Ir a Departamento</span>
+                        <button type="button" onclick="mapa.centrarEn(-16.4955, -68.1336)" class="dept-btn">LPZ</button>
+                        <button type="button" onclick="mapa.centrarEn(-17.7833, -63.1821)" class="dept-btn">SCZ</button>
+                        <button type="button" onclick="mapa.centrarEn(-17.3895, -66.1568)" class="dept-btn">CBB</button>
+                        <button type="button" onclick="mapa.centrarEn(-19.0333, -65.2627)" class="dept-btn">CHQ</button>
+                        <button type="button" onclick="mapa.centrarEn(-19.5833, -65.7500)" class="dept-btn">POT</button>
+                        <button type="button" onclick="mapa.centrarEn(-21.5333, -64.7333)" class="dept-btn">TAR</button>
+                        <button type="button" onclick="mapa.centrarEn(-17.9833, -67.1500)" class="dept-btn">ORU</button>
+                        <button type="button" onclick="mapa.centrarEn(-14.8333, -64.9000)" class="dept-btn">BEN</button>
+                        <button type="button" onclick="mapa.centrarEn(-11.0167, -68.7500)" class="dept-btn">PAN</button>
+                    </div>
+
+                    <div id="mapa-contenedor" class="flex-1 rounded-2xl overflow-hidden grayscale-[0.2] contrast-[1.1] hover:grayscale-0 transition-all duration-700"></div>
+                    
+                    <div class="p-3 bg-slate-900/50 backdrop-blur-md flex justify-between items-center mt-2 rounded-xl">
+                        <p class="text-[10px] text-slate-400 italic">
+                            <i class="bi bi-info-circle me-1"></i> Puedes corregir la ubicación arrastrando el marcador azul.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </form>
+</div>
+
+<style>
+    #mapa-contenedor { width: 100%; height: 100%; min-height: 480px; }
+    .dept-btn { 
+        background-color: rgba(15, 23, 42, 0.9);
+        font-size: 10px;
+        font-weight: bold;
+        color: #cbd5e1;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        pointer-events: auto;
+    }
+    .dept-btn:hover {
+        background-color: #8b5cf6;
+        color: white;
+        border-color: #a78bfa;
+        transform: translateY(-1px);
+    }
+    .leaflet-container { font-family: inherit; }
+    .leaflet-control-zoom { border: none !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; }
+    .leaflet-control-zoom-in, .leaflet-control-zoom-out { background: rgba(15, 23, 42, 0.9) !important; color: white !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; }
+    .glass-card:hover { transform: translateY(-2px); transition: all 0.3s ease; border-color: rgba(139, 92, 246, 0.2); }
+</style>
+
+@section Scripts {
+    @if (puedeVerMapa)
+    {
+        <script>
+            let mapa;
+            document.addEventListener('DOMContentLoaded', () => {
+                mapa = new MapaInteractivo('mapa-contenedor', {
+                    googleApiKey: '@ViewBag.GoogleApiKey',
+                    latInputId: 'inputLat',
+                    lngInputId: 'inputLng',
+                    direccionInputId: 'inputDireccion'
+                });
+            });
+        </script>
+    }
+}

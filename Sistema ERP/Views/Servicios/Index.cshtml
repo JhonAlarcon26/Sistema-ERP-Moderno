@@ -1,0 +1,234 @@
+@model IEnumerable<Sistema_ERP.Models.InventarioServicio>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Gestión de Servicios";
+}
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-violet-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-wrench-adjustable text-violet-400 text-lg"></i>
+            </span>
+            Servicio
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Administra los servicios brindados sin control de stock</p>
+    </div>
+    <div class="flex gap-3">
+        @if ((await AuthorizationService.AuthorizeAsync(User, "CrearServicio")).Succeeded)
+        {
+            <button onclick="openModal('modalNuevoServicio')" class="btn-primary">
+                <i class="bi bi-plus-lg"></i> Nuevo Servicio
+            </button>
+        }
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-center gap-3 animate-pulse-subtle">
+        <i class="bi bi-check-circle-fill text-lg text-shadow-glow"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm flex items-center gap-3">
+        <i class="bi bi-info-circle-fill text-lg"></i>
+        <span>@TempData["Info"]</span>
+    </div>
+}
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-hash"></i> ID</label>
+            <input type="text" id="filtroId" placeholder="Ej. 1..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-wrench"></i> Servicio</label>
+            <input type="text" id="filtroServicio" placeholder="Buscar..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-tag"></i> Categoría</label>
+            <input type="text" id="filtroCategoria" placeholder="Ej. Instalación..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all">
+        </div>
+        <div>
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group mt-5">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="tablaServicios">
+            <thead>
+                <tr class="border-b border-slate-700/50">
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">#</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Servicio</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Categoría</th>
+                    <th class="text-right px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Precio Venta</th>
+                    <th class="text-right px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider w-28">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr class="border-t border-slate-700/30 table-row">
+                        <td class="px-5 py-3 text-slate-500 text-xs font-mono">@s.IdServicio</td>
+                        <td class="px-5 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0 border border-violet-500/10">
+                                    <i class="bi bi-wrench text-violet-400 text-xs"></i>
+                                </div>
+                                <span class="text-white font-medium">@s.NombreServicio</span>
+                            </div>
+                        </td>
+                        <td class="px-5 py-3">
+                            <span class="text-slate-400 text-xs">@(string.IsNullOrEmpty(s.Categoria) ? "Sin categoría" : s.Categoria)</span>
+                        </td>
+                        <td class="px-5 py-3 text-right">
+                            <span class="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-emerald-500/10">Bs. @s.PrecioVenta.ToString("N2")</span>
+                        </td>
+                        <td class="px-5 py-3 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EditarServicio")).Succeeded)
+                                {
+                                    <a asp-action="EditarServicio" asp-route-id="@s.IdServicio" class="w-8 h-8 flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-all" title="Editar">
+                                        <i class="bi bi-pencil-fill text-xs"></i>
+                                    </a>
+                                }
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarServicio")).Succeeded)
+                                {
+                                    <form asp-action="EliminarServicio" asp-route-id="@s.IdServicio" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar">
+                                            <i class="bi bi-trash-fill text-xs"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div id="modalNuevoServicio" class="modal-overlay hidden">
+    <div class="modal-backdrop" onclick="closeModal('modalNuevoServicio')"></div>
+    <div class="modal-box max-w-2xl"> 
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="bi bi-plus-circle text-indigo-400"></i> Nuevo Servicio
+            </h3>
+            <button onclick="closeModal('modalNuevoServicio')" class="text-slate-500 hover:text-white transition-colors"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form asp-action="CrearServicio" method="post" enctype="multipart/form-data" class="space-y-4">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label">Nombre del Servicio</label>
+                <input type="text" name="NombreServicio" class="form-input" required placeholder="Ej: Instalación de Cámaras">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">Categoría</label>
+                    <select name="Categoria" class="form-input select-searchable">
+                        <option value="">-- Seleccionar --</option>
+                        @if (ViewBag.Categorias != null)
+                        {
+                            foreach (var cat in ViewBag.Categorias)
+                            {
+                                <option value="@cat.Nombre">@cat.Nombre</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Precio Venta (Bs.)</label>
+                    <input type="number" step="0.01" name="PrecioVenta" class="form-input" required placeholder="1000.00">
+                </div>
+            </div>
+            <div>
+                <label class="form-label text-xs uppercase tracking-wider text-slate-300">Imagen del Servicio (Opcional)</label>
+                <div class="flex items-center gap-4 mt-1">
+                    <div class="w-16 h-16 rounded-xl bg-slate-900/50 border border-slate-700/50 overflow-hidden flex-shrink-0 flex items-center justify-center shadow-inner" style="width: 64px; height: 64px; min-width: 64px; overflow: hidden;">
+                        <img id="imgPreviewSrv" src="/img/no-image.png" class="w-full h-full object-cover text-slate-500" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview"/>
+                    </div>
+                    <div class="flex-1 relative min-w-0"> 
+                        <label for="inpImagenSrv" class="cursor-pointer flex items-center justify-between w-full px-4 py-3 bg-slate-900/40 hover:bg-slate-800/60 border border-slate-700/50 rounded-xl text-sm font-medium text-slate-300 transition-all focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden">
+                            <div class="flex items-center gap-2 overflow-hidden flex-1">
+                                <i class="bi bi-image text-indigo-400 flex-shrink-0"></i>
+                                <span id="txtFileNameSrv" class="truncate text-slate-400">Seleccionar imagen pinchando aquí...</span>
+                            </div>
+                            <span class="bg-indigo-600/20 text-indigo-300 text-xs px-2 py-1 rounded-md border border-indigo-500/30 flex-shrink-0 ml-2">Explorar</span>
+                        </label>
+                        <input type="file" name="imagen" id="inpImagenSrv" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer hidden" onchange="previewImagenServicio(this, 'imgPreviewSrv', 'txtFileNameSrv')">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="form-label">Descripción</label>
+                <input type="text" name="Descripcion" class="form-input" placeholder="Detalles del servicio">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeModal('modalNuevoServicio')" class="btn-secondary flex-1 justify-center">Cancelar</button>
+                <button type="submit" class="btn-primary flex-1 justify-center">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m=>closeModal(m.id)); });
+    
+    $(document).ready(function() {
+        var table = $('#tablaServicios').DataTable({
+            dom: 'rtip',
+            pageLength: 10,
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
+            },
+            order: [[0, 'desc']]
+        });
+
+        $('#filtroId').on('keyup', function() { table.column(0).search(this.value).draw(); });
+        $('#filtroServicio').on('keyup', function() { table.column(1).search(this.value).draw(); });
+        $('#filtroCategoria').on('keyup', function() { table.column(2).search(this.value).draw(); });
+    });
+
+    function limpiarFiltros() {
+        $('#filtroId, #filtroServicio, #filtroCategoria').val('');
+        var table = $('#tablaServicios').DataTable();
+        table.search('').columns().search('').draw();
+    }
+
+    function previewImagenServicio(input, imgId, textId) {
+        var textElem = document.getElementById(textId);
+        if (input.files && input.files[0]) {
+            if(textElem) textElem.textContent = input.files[0].name;
+            var reader = new FileReader();
+            reader.onload = function(e) { document.getElementById(imgId).src = e.target.result; }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            if(textElem) textElem.textContent = "Seleccionar imagen pinchando aquí...";
+            document.getElementById(imgId).src = '/img/no-image.png';
+        }
+    }
+</script>
+}

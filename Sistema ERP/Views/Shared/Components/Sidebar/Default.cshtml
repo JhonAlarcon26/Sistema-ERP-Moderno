@@ -1,0 +1,181 @@
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    var controller = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["Action"]?.ToString();
+
+    async Task<bool> IsAuthorized(string policy)
+    {
+        return (await AuthorizationService.AuthorizeAsync(User, policy)).Succeeded;
+    }
+}
+
+
+<nav class="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
+
+    @if (await IsAuthorized("VerDashboard"))
+    {
+        <p class="section-label">Principal</p>
+        <a class="sidebar-link @(controller == "Home" && action == "Index" ? "active" : "")"
+           asp-controller="Home" asp-action="Index">
+            <i class="bi bi-grid-1x2"></i> Inicio
+        </a>
+    }
+    
+    @if (await IsAuthorized("VerAgenda"))
+    {
+        <p class="section-label">Agenda y Tareas</p>
+        <a class="sidebar-link @(controller == "Agenda" && action == "Index" ? "active" : "")"
+           asp-controller="Agenda" asp-action="Index">
+            <i class="bi bi-calendar3"></i> Agenda
+        </a>
+        <a class="sidebar-link @(controller == "Agenda" && action == "Listado" ? "active" : "")"
+           asp-controller="Agenda" asp-action="Listado">
+            <i class="bi bi-list-stars"></i> Lista de Tareas
+        </a>
+    }
+
+    @if (await IsAuthorized("VerStock") || await IsAuthorized("VerCompras"))
+    {
+        <p class="section-label">Gestión de Compras</p>
+        @if (await IsAuthorized("VerStock"))
+        {
+            <a class="sidebar-link @(controller == "Stock" ? "active" : "")"
+               asp-controller="Stock" asp-action="Index">
+                <i class="bi bi-boxes"></i> Stock
+            </a>
+        }
+        @if (await IsAuthorized("VerCompras"))
+        {
+            <a class="sidebar-link @(controller == "Compras" ? "active" : "")"
+               asp-controller="Compras" asp-action="Index">
+                <i class="bi bi-cart"></i> Compra
+            </a>
+        }
+    }
+
+    @if (await IsAuthorized("VerVentas") || await IsAuthorized("VerCobros"))
+    {
+        <p class="section-label">Gestión de Ventas</p>
+        @if (await IsAuthorized("VerVentas"))
+        {
+            <a class="sidebar-link @(controller == "Cotizaciones" ? "active" : "")"
+               asp-controller="Cotizaciones" asp-action="Index">
+                <i class="bi bi-file-earmark-text"></i> Cotizaciones / Ventas
+            </a>
+        }
+        @if (await IsAuthorized("VerCobros"))
+        {
+            <a class="sidebar-link @(controller == "Cobros" ? "active" : "")"
+               asp-controller="Cobros" asp-action="Index">
+                <i class="bi bi-collection"></i> Cobranzas
+            </a>
+        }
+    }
+
+    @if (await IsAuthorized("VerClientes") || await IsAuthorized("VerProveedores") || await IsAuthorized("VerCatalogo"))
+    {
+        <p class="section-label">Gestión de Clientes y Socios</p>
+        @if (await IsAuthorized("VerClientes"))
+        {
+            <a class="sidebar-link @(controller == "Clientes" ? "active" : "")"
+               asp-controller="Clientes" asp-action="Index">
+                <i class="bi bi-people"></i> Clientes
+            </a>
+        }
+        @if (await IsAuthorized("VerCatalogo"))
+        {
+            <a class="sidebar-link @(controller == "CatalogoPublico" ? "active" : "")"
+               asp-controller="CatalogoPublico" asp-action="Index">
+                <i class="bi bi-shop"></i> Catálogo
+            </a>
+        }
+        @if (await IsAuthorized("VerProveedores"))
+        {
+            <a class="sidebar-link @(controller == "Proveedores" ? "active" : "")"
+               asp-controller="Proveedores" asp-action="Index">
+                <i class="bi bi-truck"></i> Proveedores
+            </a>
+        }
+    }
+
+    @if (await IsAuthorized("VerProductos") || await IsAuthorized("VerServicios"))
+    {
+        <p class="section-label">Catálogo de Productos</p>
+        @if (await IsAuthorized("VerProductos"))
+        {
+            <a class="sidebar-link @(controller == "Productos" ? "active" : "")"
+               asp-controller="Productos" asp-action="Index">
+                <i class="bi bi-box-seam"></i> Producto
+            </a>
+        }
+        @if (await IsAuthorized("VerServicios"))
+        {
+            <a class="sidebar-link @(controller == "Servicios" ? "active" : "")"
+               asp-controller="Servicios" asp-action="Index">
+                <i class="bi bi-wrench"></i> Servicio
+            </a>
+        }
+    }
+
+    @if (await IsAuthorized("VerConfig"))
+    {
+        <p class="section-label">Configuración del Sistema</p>
+        <a class="sidebar-link @(controller == "TiposProducto" ? "active" : "")"
+           asp-controller="TiposProducto" asp-action="Index">
+            <i class="bi bi-tags"></i> Tipos de Producto
+        </a>
+        <a class="sidebar-link @(controller == "TiposServicio" ? "active" : "")"
+           asp-controller="TiposServicio" asp-action="Index">
+            <i class="bi bi-tools"></i> Tipos de Servicio
+        </a>
+        <a class="sidebar-link @(controller == "MetodosPago" ? "active" : "")"
+           asp-controller="MetodosPago" asp-action="Index">
+            <i class="bi bi-wallet2"></i> Métodos de Pago
+        </a>
+        <a class="sidebar-link @(controller == "Configuracion" ? "active" : "")"
+           asp-controller="Configuracion" asp-action="Index">
+            <i class="bi bi-gear"></i> Ajustes de API / SMTP
+        </a>
+    }
+
+    @if (await IsAuthorized("VerReportes"))
+    {
+        <p class="section-label">Análisis y Reportes</p>
+        <a class="sidebar-link @(action == "Venta" ? "active" : "")" href="/Reportes/Venta">
+            <i class="bi bi-graph-up-arrow"></i> Reporte de Ventas
+        </a>
+        <a class="sidebar-link @(action == "Compra" ? "active" : "")" href="/Reportes/Compra">
+            <i class="bi bi-cart-check"></i> Reporte de Compras
+        </a>
+        <a class="sidebar-link @(action == "Stock" ? "active" : "")" href="/Reportes/Stock">
+            <i class="bi bi-pie-chart"></i> Reporte de Stock
+        </a>
+    }
+
+    @if (await IsAuthorized("VerUsuarios") || await IsAuthorized("VerRoles") || await IsAuthorized("VerPermisos"))
+    {
+        <p class="section-label">Seguridad y Acceso</p>
+        @if (await IsAuthorized("VerUsuarios"))
+        {
+            <a class="sidebar-link @(controller == "Usuarios" ? "active" : "")"
+               asp-controller="Usuarios" asp-action="Index">
+                <i class="bi bi-person-badge"></i> Usuarios
+            </a>
+        }
+        @if (await IsAuthorized("VerRoles"))
+        {
+            <a class="sidebar-link @(controller == "Roles" ? "active" : "")"
+               asp-controller="Roles" asp-action="Index">
+                <i class="bi bi-shield-lock"></i> Roles
+            </a>
+        }
+        @if (await IsAuthorized("VerPermisos"))
+        {
+            <a class="sidebar-link @(controller == "Permisos" ? "active" : "")"
+               asp-controller="Permisos" asp-action="Index">
+                <i class="bi bi-key"></i> Permisos
+            </a>
+        }
+    }
+</nav>

@@ -1,0 +1,383 @@
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Agenda de Visitas";
+}
+
+<div class="p-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-black text-white tracking-tight">Agenda <span class="text-indigo-500">Técnica</span></h1>
+            <p class="text-slate-400 mt-1">Programación y seguimiento de visitas a clientes.</p>
+        </div>
+        <div class="flex gap-2">
+            @if ((await AuthorizationService.AuthorizeAsync(User, "CrearCita")).Succeeded)
+            {
+                <button onclick="abrirModalNuevaVisita()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-900/20">
+                    <i class="bi bi-plus-lg"></i> Programar Visita
+                </button>
+            }
+            <a asp-action="Listado" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 border border-slate-700">
+                <i class="bi bi-list-task"></i> Ver Lista
+            </a>
+        </div>
+    </div>
+
+    
+    <div class="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-3xl p-6 shadow-2xl">
+        <div id="calendar" class="min-h-[700px]"></div>
+    </div>
+</div>
+
+
+<div id="modalVisita" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl transform transition-all scale-95 opacity-0 duration-300" id="modalVisitaContent">
+        <div class="px-8 py-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/20">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="bi bi-calendar-plus text-indigo-500"></i> Nueva Visita
+            </h3>
+            <button onclick="cerrarModal()" class="text-slate-500 hover:text-white transition-colors text-2xl">&times;</button>
+        </div>
+        <div class="p-8 space-y-5">
+            <form id="formVisita">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Cliente</label>
+                    <select id="idCliente" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none">
+                        <option value="">-- Seleccionar Cliente --</option>
+                        @foreach (var c in ViewBag.Clientes)
+                        {
+                            <option value="@c.IdCliente">@c.NombreRazonSocial</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Empresa</label>
+                    <select id="empresa" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                        <option value="Particular" selected>Particular</option>
+                        <option value="Empresa">Empresa</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Fecha</label>
+                        <input type="Date" id="fechaSolo" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Hora</label>
+                        <div class="flex gap-2">
+                            <input type="time" id="horaSolo" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            <select id="ampm" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                                <option value="AM" selected>AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Técnico</label>
+                     <select id="idTecnico" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                         @foreach (var u in ViewBag.Tecnicos)
+                         {
+                             <option value="@u.IdUsuario">@u.NombreCompleto</option>
+                         }
+                     </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Descripción del Trabajo</label>
+                    <textarea id="descripcion" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Detalle del soporte..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="px-8 py-6 bg-slate-800/20 border-t border-slate-800 flex justify-end gap-3">
+            <button onclick="cerrarModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-sm border border-slate-700 hover:bg-slate-700 transition-all">Cancelar</button>
+            <button onclick="guardarVisita()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-900/20 transition-all">Guardar Visita</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="modalDetalle" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl transform transition-all scale-95 opacity-0 duration-300" id="modalDetalleContent">
+        <div class="px-8 py-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/20">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="bi bi-info-circle text-indigo-500"></i> Detalle de Visita
+            </h3>
+            <button onclick="cerrarDetalle()" class="text-slate-500 hover:text-white transition-colors text-2xl">&times;</button>
+        </div>
+        <div class="p-8 space-y-6">
+            <div id="detalleContenido" class="space-y-4">
+                
+            </div>
+        </div>
+        <div class="px-8 py-6 bg-slate-800/20 border-t border-slate-800 flex flex-wrap gap-2 justify-end">
+            @if ((await AuthorizationService.AuthorizeAsync(User, "EditarCita")).Succeeded || (await AuthorizationService.AuthorizeAsync(User, "FinalizarCita")).Succeeded)
+            {
+                <button id="btnFinalizar" onclick="cambiarEstado('Finalizado')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-xl font-bold text-sm shadow-lg shadow-emerald-900/20 transition-all hidden flex items-center gap-2">
+                    <i class="bi bi-capslock-fill"></i> Finalizar Visita
+                </button>
+            }
+            @if ((await AuthorizationService.AuthorizeAsync(User, "CrearVenta")).Succeeded)
+            {
+                <button id="btnCotizar" onclick="irACotizar()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl font-bold text-sm shadow-lg shadow-indigo-900/20 transition-all hidden">Generar Venta</button>
+            }
+            @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarCita")).Succeeded)
+            {
+                <button id="btnEliminar" onclick="eliminarVisita(event)" class="bg-rose-600 hover:bg-rose-500 text-white px-5 py-2 rounded-xl font-bold text-sm border border-rose-700 shadow-lg shadow-rose-900/20 transition-all">Eliminar</button>
+            }
+            <button onclick="cerrarDetalle()" class="px-5 py-2 rounded-xl bg-slate-800 text-white font-bold text-sm border border-slate-700 hover:bg-slate-700 transition-all">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script>
+        let calendar;
+        let visitaActualId = null;
+        let clienteActualId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana',
+                    day: 'Día'
+                },
+                events: '/Agenda/GetVisitas',
+                editable: false,
+                selectable: true,
+                eventClick: function(info) {
+                    mostrarDetalle(info.event.id);
+                },
+                dateClick: function(info) {
+                    let datePart = info.dateStr.split('T')[0];
+                    document.getElementById('fechaSolo').value = datePart;
+
+                    if (info.dateStr.includes('T')) {
+                        let timePart = info.dateStr.split('T')[1].substring(0, 5);
+                        document.getElementById('horaSolo').value = timePart;
+                        let hours = parseInt(timePart.split(':')[0], 10);
+                        document.getElementById('ampm').value = hours >= 12 ? 'PM' : 'AM';
+                    } else {
+                        document.getElementById('horaSolo').value = "00:00";
+                        document.getElementById('ampm').value = "AM";
+                    }
+                    abrirModalNuevaVisita();
+                },
+                allDaySlot: false,
+                slotDuration: '01:00:00',
+                expandRows: true
+            });
+            calendar.render();
+        });
+
+        function abrirModalNuevaVisita() {
+            const modal = document.getElementById('modalVisita');
+            const content = document.getElementById('modalVisitaContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('modalVisita');
+            const content = document.getElementById('modalVisitaContent');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('formVisita').reset();
+            }, 300);
+        }
+
+        function guardarVisita() {
+            const btn = event.currentTarget || event.target;
+            const originalText = btn.innerHTML;
+            
+            const fecha = document.getElementById('fechaSolo').value;
+            let horaRaw = document.getElementById('horaSolo').value;
+            const ampm = document.getElementById('ampm').value;
+
+            if (!fecha || !horaRaw) {
+                alert("Por favor completa la fecha y la hora.");
+                return;
+            }
+
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i> Guardando...';
+
+
+            let [h, m] = horaRaw.split(':').map(Number);
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            const hora24 = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+
+            const Data = {
+                idCliente: document.getElementById('idCliente').value,
+                empresa: document.getElementById('empresa').value,
+                fecha: fecha + "T" + hora24, 
+                idTecnico: document.getElementById('idTecnico').value,
+                descripcion: document.getElementById('descripcion').value
+            };
+
+            $.post('/Agenda/Crear', Data, function(res) {
+                if(res.success) {
+                    cerrarModal();
+                    calendar.refetchEvents();
+                    calendar.refetchEvents();
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    alert("Error: " + res.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }).fail(function() {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+
+        function mostrarDetalle(id) {
+            visitaActualId = id;
+            $.get('/Agenda/GetDetalle/' + id, function(v) {
+                clienteActualId = v.idCliente || v.IdCliente; 
+                console.log("Visita cargada, Cliente ID:", clienteActualId);
+                let html = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black px-3 py-1 rounded-full ${v.estado == 'Pendiente' ? 'bg-amber-500/20 text-amber-500' : v.estado == 'En Proceso' ? 'bg-indigo-500/20 text-indigo-500' : 'bg-emerald-500/20 text-emerald-500'}">
+                            ${v.estado.toUpperCase()}
+                        </span>
+                        <span class="text-slate-500 text-sm italic">${v.fecha}</span>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-widest">Cliente</p>
+                        <p class="text-white text-lg font-bold">${v.cliente}</p>
+                        <p class="text-indigo-400 text-sm font-medium"><i class="bi bi-building"></i> ${v.empresa || 'Particular'}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-widest">Técnico Asignado</p>
+                        <p class="text-slate-300 font-semibold">${v.tecnico}</p>
+                    </div>
+                    <div class="bg-slate-950/50 p-4 rounded-2xl border border-slate-800">
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-widest mb-2">Trabajo a Realizar</p>
+                        <p class="text-slate-300 whitespace-pre-wrap">${v.desc || 'Sin descripción.'}</p>
+                    </div>
+                `;
+                document.getElementById('detalleContenido').innerHTML = html;
+
+
+                document.getElementById('btnFinalizar').classList.toggle('hidden', v.estado == 'Finalizado');
+                document.getElementById('btnCotizar').classList.toggle('hidden', v.estado != 'Finalizado');
+
+                const modal = document.getElementById('modalDetalle');
+                const content = document.getElementById('modalDetalleContent');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    content.classList.remove('scale-95', 'opacity-0');
+                }, 10);
+            });
+        }
+
+        function cerrarDetalle() {
+            const modal = document.getElementById('modalDetalle');
+            const content = document.getElementById('modalDetalleContent');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function cambiarEstado(nuevoEstado) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i> Procesando...';
+
+            $.post('/Agenda/CambiarEstado', { id: visitaActualId, nuevoEstado: nuevoEstado }, function(res) {
+                if(res.success) {
+                    calendar.refetchEvents();
+
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }).fail(function() {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+
+        function eliminarVisita(event) {
+            const btn = event.currentTarget || event.target;
+            const originalText = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i> Eliminando...';
+
+            $.post('/Agenda/Eliminar', { id: visitaActualId }, function(res) {
+                if(res.success) {
+                    cerrarDetalle();
+                    calendar.refetchEvents();
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }).fail(function() {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+
+        function irACotizar() {
+
+            window.location.href = '/Cotizaciones/Nueva?idCliente=' + clienteActualId;
+        }
+    </script>
+
+    <style>
+        .fc { --fc-border-color: #1e293b; --fc-page-bg-color: transparent; }
+        .fc-theme-standard td, .fc-theme-standard th { border: 1px solid #1e293b; }
+        .fc-header-toolbar h2 { font-size: 1.25rem !important; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.1em; }
+        
+        
+        .fc-button-primary { background-color: #1e293b !important; border-color: #334155 !important; font-weight: bold !important; text-transform: uppercase !important; font-size: 0.75rem !important; padding: 0.75rem 1rem !important; border-radius: 0.75rem !important; transition: all 0.2s ease !important; }
+        .fc-button-primary:hover { background-color: #334155 !important; transform: translateY(-1px); }
+        .fc-button-active { background-color: #4f46e5 !important; border-color: #4f46e5 !important; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important; }
+
+        
+        .fc .fc-button-group { display: flex !important; gap: 10px !important; background: transparent !important; }
+        .fc .fc-button-group > .fc-button { border-radius: 12px !important; margin-left: 0 !important; }
+        .fc .fc-toolbar-chunk { display: flex; align-items: center; gap: 10px; }
+
+        
+        .fc-daygrid-day:hover { background-color: rgba(79, 70, 229, 0.05); }
+        .fc-event { border-radius: 6px !important; padding: 2px 6px !important; font-weight: bold !important; font-size: 0.75rem !important; border: none !important; margin: 1px !important; }
+        .fc-col-header-cell { background-color: #0f172a; padding: 12px 0 !important; }
+        .fc-col-header-cell-cushion { color: #94a3b8 !important; text-transform: uppercase; font-size: 0.7rem; font-weight: 900; }
+        .fc-day-today { background-color: rgba(79, 70, 229, 0.05) !important; }
+        
+        th.fc-timegrid-axis { position: relative !important; }
+        th.fc-timegrid-axis::after { 
+            content: '24 hrs'; 
+            position: absolute; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+            font-size: 0.70rem; 
+            font-weight: 900; 
+            color: #94a3b8; 
+            text-transform: uppercase; 
+        }
+    </style>
+}

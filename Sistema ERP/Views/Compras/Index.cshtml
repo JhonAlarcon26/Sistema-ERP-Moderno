@@ -1,0 +1,654 @@
+@model IEnumerable<Sistema_ERP.Controllers.CompraAgrupadaVM>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Listado de Compras";
+}
+
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-indigo-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-clock-history text-indigo-400 text-lg"></i>
+            </span>
+            Compra
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Registros de todos tus ingresos y reabastecimientos al inventario</p>
+    </div>
+    <div class="flex gap-3">
+        @if ((await AuthorizationService.AuthorizeAsync(User, "CrearCompra")).Succeeded)
+        {
+            <a asp-action="NuevaCompra" class="btn-primary">
+                <i class="bi bi-plus-lg"></i> Registrar Compra
+            </a>
+        }
+    </div>
+</div>
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-calendar-date"></i> Fecha</label>
+            <input type="date" id="filtroFecha" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-truck"></i> Proveedor</label>
+            <input type="text" id="filtroProveedor" placeholder="Buscar proveedor..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-person-vcard"></i> NIT / CI</label>
+            <input type="text" id="filtroNitCi" placeholder="Ej. 7562122" class="w-full bg-slate-900 border border-cyan-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-credit-card"></i> Método de Pago</label>
+            <input type="text" id="filtroMetodo" placeholder="Ej. Efectivo..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-box-seam"></i>Items</label>
+            <input type="text" id="filtroItems" placeholder="Ej. 5..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-cash-stack"></i> Total</label>
+            <input type="text" id="filtroTotal" placeholder="Ej. 200.00" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="tablaCompras">
+            <thead>
+                <tr class="border-b border-slate-700/50">
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider w-40">Fecha / Usuario</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Proveedor</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Método de Pago</th>
+                    <th class="text-center px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Items</th>
+                    <th class="text-right px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Total Compra</th>
+                    <th class="text-center px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider w-36">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var compra in Model)
+                {
+                    <tr class="table-row border-t border-slate-700/30">
+                        <td class="px-5 py-4" Data-order="@compra.Fecha?.ToString("yyyyMMddHHmm")">
+                            <div class="text-white font-medium">@compra.Fecha?.ToString("dd/MM/yyyy") <span class="text-slate-500 text-[10px] ml-1">@compra.Fecha?.ToString("HH:mm")</span></div>
+                            <div class="text-slate-400 text-xs mt-1">
+                                <i class="bi bi-person-fill text-indigo-400"></i> @compra.UsuarioNombre
+                            </div>
+                        </td>
+                        <td class="px-5 py-4">
+                            <div class="text-white font-medium">@compra.ProveedorNombre</div>
+                            <div class="text-xs text-slate-500">NIT: @compra.ProveedorNit</div>
+                        </td>
+                        <td class="px-5 py-4">
+                            <span class="bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">@compra.MetodoPago</span>
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            <span class="bg-slate-800 text-slate-400 px-2 py-1 rounded font-mono text-xs">@compra.CantidadItems prod.</span>
+                        </td>
+                        <td class="px-5 py-4 text-right text-emerald-400 font-mono font-bold text-base">
+                            Bs. @compra.Total.ToString("N2")
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            <div class="flex justify-center items-center gap-1">
+                                <button type="button" 
+                                    data-detalles="@compra.DetallesJson" 
+                                    data-prov="@compra.ProveedorNombre" 
+                                    data-nit="@compra.ProveedorNit" 
+                                    data-fecha="@compra.Fecha?.ToString("dd/MM/yyyy HH:mm")" 
+                                    data-metodo="@compra.MetodoPago" 
+                                    data-total="@compra.Total.ToString("N2")"
+                                    onclick="verDetalleAgrupado(this)" 
+                                    class="w-10 h-10 flex items-center justify-center bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-all" title="Ver Detalle Compra">
+                                    <i class="bi bi-eye-fill text-lg"></i>
+                                </button>
+                                <button type="button" 
+                                    data-detalles="@compra.DetallesJson" 
+                                    data-prov="@compra.ProveedorNombre" 
+                                    data-nit="@compra.ProveedorNit" 
+                                    data-fecha="@compra.Fecha?.ToString("dd/MM/yyyy HH:mm")" 
+                                    data-metodo="@compra.MetodoPago" 
+                                    data-total="@compra.Total.ToString("N2")"
+                                    onclick="imprimirAgrupado(this)" 
+                                    class="w-10 h-10 flex items-center justify-center bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg transition-all" title="Imprimir Recibo Completo">
+                                    <i class="bi bi-printer-fill text-lg"></i>
+                                </button>
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarCompra")).Succeeded)
+                                {
+                                    <form asp-action="EliminarCompra" asp-route-id="@compra.IdReferencia" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar Compra">
+                                            <i class="bi bi-trash-fill text-xs"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Modals {
+    <style>
+        .custom-modal-overlay {
+            display: none;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: rgba(15, 23, 42, 0.8) !important;
+            z-index: 99999 !important;
+            overflow-y: auto !important;
+            padding-top: 50px !important;
+            padding-bottom: 50px !important;
+            backdrop-filter: blur(4px) !important;
+        }
+        .custom-modal-box {
+            background-color: #1e293b !important; 
+            border-radius: 1rem !important; 
+            border: 1px solid rgba(51, 65, 85, 0.5) !important; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important; 
+            margin: 0 auto !important;
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out !important;
+        }
+        .max-w-medium { max-width: 42rem !important; }
+        .max-w-small { max-width: 20rem !important; }
+    </style>
+
+    
+    <div id="modalDetalleCompra" class="custom-modal-overlay transition-opacity duration-300 opacity-0">
+        <div class="custom-modal-box max-w-medium transform scale-95" id="modalDetalleCompraContent">
+            <div class="p-5 border-b border-slate-700 flex justify-between items-center bg-slate-800/50 rounded-t-2xl flex-shrink-0">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="bi bi-receipt text-indigo-400"></i> Detalle de Compra
+                </h3>
+            </div>
+            <div class="p-6 space-y-4" id="printArea" style="flex: 1 1 auto; background: rgba(15, 23, 42, 0.2); min-height: 200px;">
+                    <h2 class="text-2xl font-black text-white tracking-tighter italic text-center">STC Services</h2>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-[0.2em] mt-1 text-center">Comprobante de Ingreso</p>
+                
+                <div class="grid grid-cols-2 gap-4 text-xs mb-6 bg-slate-900/40 p-3 rounded-xl border border-slate-700/30">
+                    <div class="space-y-1">
+                        <p class="text-slate-500 uppercase text-[9px] font-bold">Fecha de Ingreso</p>
+                        <p class="text-white font-mono" id="lblDetFecha"></p>
+                    </div>
+                    <div class="space-y-1 text-right">
+                        <p class="text-slate-500 uppercase text-[9px] font-bold">Método de Pago</p>
+                        <p class="text-white font-medium" id="lblDetMetodo"></p>
+                    </div>
+                    <div class="col-span-2 pt-2 border-t border-slate-700/50">
+                        <p class="text-slate-500 uppercase text-[9px] font-bold">Proveedor</p>
+                        <p class="text-white font-bold" id="lblDetProv"></p>
+                        <p class="text-slate-400 font-mono text-[10px]" id="lblDetNit"></p>
+                    </div>
+                </div>
+
+                <div class="overflow-y-auto max-h-[400px] rounded-xl border border-slate-700/30 bg-slate-900/20 custom-scrollbar">
+                    <table class="w-full text-xs text-left border-collapse">
+                        <thead class="sticky top-0 z-10 bg-slate-800 shadow-sm">
+                            <tr class="bg-slate-800/50 text-[9px] text-slate-500 uppercase font-bold">
+                                <th class="px-3 py-2">Producto</th>
+                                <th class="px-3 py-2 text-center">Cant.</th>
+                                <th class="px-3 py-2 text-right">Costo Compra</th>
+                                <th class="px-3 py-2 text-right">Precio Ref. (Hist.)</th>
+                                <th class="px-3 py-2 text-right">Precio Venta (Hist.)</th>
+                                <th class="px-3 py-2 text-right">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaDetallesCompra" class="divide-y divide-slate-700/30">
+                            
+                        </tbody>
+                        <tfoot class="sticky bottom-0 z-10 bg-slate-900">
+                            <tr class="bg-slate-800/80 backdrop-blur-md">
+                                <td colspan="5" class="px-3 py-3 text-right text-slate-400 font-bold uppercase text-[10px]">Total Compra:</td>
+                                <td class="px-3 py-3 text-right text-emerald-400 font-mono font-bold text-sm" id="lblDetTotal"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="p-5 border-t border-slate-700 flex justify-end gap-3 bg-slate-800/50 rounded-b-2xl no-print flex-shrink-0">
+                <button onclick="cerrarModal('modalDetalleCompra')" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-xl transition-colors text-sm font-medium">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="zonaImpresionGlobal" class="hidden">
+        
+    </div>
+
+
+    
+    <div id="modalPreview" class="custom-modal-overlay transition-opacity duration-300 opacity-0">
+        <div class="custom-modal-box max-w-small transform scale-95" id="modalPreviewContent">
+            <div class="p-4 border-b border-slate-700/50 bg-slate-800/20 flex items-center justify-between flex-shrink-0">
+                <h3 class="text-white text-sm font-bold flex items-center gap-2">
+                    <i class="bi bi-clipboard-Data text-indigo-400"></i> Ficha Tecnica
+                </h3>
+            </div>
+            <div class="p-5 space-y-4" id="ticketProducto" style="flex: 1 1 auto; background: rgba(15, 23, 42, 0.2); min-height: 150px;">
+                <div class="space-y-0.5 text-center">
+                    <p class="text-slate-500 text-[9px] uppercase font-bold tracking-wider" id="prvCategoria">Categoría</p>
+                    <h2 class="text-lg font-bold text-white leading-tight truncate" id="prvNombre">Nombre del Producto</h2>
+                </div>
+
+                <div class="bg-slate-900/40 rounded-lg p-3 border border-slate-700/30 space-y-2">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                            <p class="text-slate-500 text-[10px] mb-0.5">Compra</p>
+                            <p class="text-green-400 font-bold text-xs" id="prvPrecioCompra">Bs. 0,00</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 text-[10px] mb-0.5">Referencia</p>
+                            <p class="text-indigo-400 font-bold text-xs" id="prvPrecioRef">Bs. 0,00</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-500 text-[10px] mb-0.5">Venta</p>
+                            <p class="text-amber-400 font-bold text-xs" id="prvPrecioVenta">Bs. 0,00</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-slate-900/40 rounded-lg border border-slate-700/30">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Descripción</p>
+                    <p class="text-slate-300 text-xs leading-relaxed" id="prvDescripcion">Sin descripción</p>
+                </div>
+            </div>
+            <div class="p-5 border-t border-slate-700 flex justify-end bg-slate-800/20 rounded-b-2xl flex-shrink-0">
+                <button type="button" onclick="cerrarModal('modalPreview')" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-xl transition-colors text-sm font-medium">Cerrar</button>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <style>
+        .DataTables_wrapper .DataTables_paginate .paginate_button { color: #94a3b8 !important; }
+        .DataTables_wrapper .DataTables_paginate .paginate_button.current {
+            background: #4f46e5 !important; color: white !important; border: none; border-radius: 0.5rem;
+        }
+        .DataTables_length, .DataTables_filter { display: none !important; }
+        table.DataTable.no-footer { border-bottom: none; }
+        .DataTables_info { color: #64748b !important; padding-top: 1rem; }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            var table = $('#tablaCompras').DataTable({
+                "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json" },
+                "order": [[ 0, "desc" ]], 
+                "columnDefs": [
+                    { "orderable": false, "targets": 5 } 
+                ],
+                "dom": 't<"flex flex-col md:flex-row justify-between items-center mt-4 text-sm text-slate-400"ip>'
+            });
+
+
+            $('#filtroFecha').on('change', function () {
+                if (this.value) {
+                    var parts = this.value.split('-'); 
+                    var formatted = parts[2] + '/' + parts[1] + '/' + parts[0];
+                    table.column(0).search(formatted).draw();
+                } else {
+                    table.column(0).search('').draw();
+                }
+            });
+            $('#filtroProveedor').on('keyup', function () { table.column(1).search(this.value).draw(); });
+            $('#filtroNitCi').on('keyup', function () { table.column(1).search(this.value).draw(); });
+            $('#filtroMetodo').on('keyup', function () { table.column(2).search(this.value).draw(); });
+            $('#filtroItems').on('keyup', function () { table.column(3).search(this.value).draw(); });
+            $('#filtroTotal').on('keyup', function () { table.column(4).search(this.value).draw(); });
+
+            window.limpiarFiltros = function() {
+                $('#filtroFecha, #filtroProveedor, #filtroNitCi, #filtroMetodo, #filtroItems, #filtroTotal').val('');
+                table.search('').columns().search('').draw();
+            };
+        });
+
+        function prepararDatosCompra(btn) {
+            const jsonDetalles = btn.getAttribute('data-detalles');
+            const prov = btn.getAttribute('data-prov');
+            const nit = btn.getAttribute('data-nit');
+            const fecha = btn.getAttribute('data-fecha');
+            const metodo = btn.getAttribute('data-metodo');
+            const total = btn.getAttribute('data-total');
+
+
+            document.getElementById('lblDetFecha').innerText = fecha || 'N/A';
+            document.getElementById('lblDetProv').innerText = prov || 'Sin Proveedor';
+            document.getElementById('lblDetNit').innerText = nit ? 'NIT: ' + nit : '';
+            document.getElementById('lblDetMetodo').innerText = metodo || 'No especificado';
+            document.getElementById('lblDetTotal').innerText = 'Bs. ' + (total || '0,00');
+
+            const lista = document.getElementById('listaDetallesCompra');
+            lista.innerHTML = '';
+            
+            let filasHTML = '';
+            try {
+                const detalles = JSON.parse(jsonDetalles || '[]');
+                detalles.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-3 py-2 text-white font-medium">${item.producto || 'N/A'}</td>
+                        <td class="px-3 py-2 text-center text-slate-400 font-mono">${item.cantidad || 0}</td>
+                        <td class="px-3 py-2 text-right text-emerald-400 font-mono font-bold">${parseFloat(item.costo || 0).toFixed(2)}</td>
+                        <td class="px-3 py-2 text-right text-indigo-400 font-mono">${parseFloat(item.precioRef || 0).toFixed(2)}</td>
+                        <td class="px-3 py-2 text-right text-amber-400 font-mono">${parseFloat(item.precioVenta || 0).toFixed(2)}</td>
+                        <td class="px-3 py-2 text-right text-white font-mono font-bold">${parseFloat(item.subtotal || 0).toFixed(2)}</td>
+                    `;
+                    lista.appendChild(tr);
+
+
+                    filasHTML += `<tr>
+                        <td style="border:1px solid #999; padding:4px 6px;">${item.producto || 'N/A'}</td>
+                        <td style="border:1px solid #999; padding:4px 6px; text-align:center;">${item.cantidad || 0}</td>
+                        <td style="border:1px solid #999; padding:4px 6px; text-align:right;">${parseFloat(item.costo || 0).toFixed(2)}</td>
+                        <td style="border:1px solid #999; padding:4px 6px; text-align:right; font-weight:bold;">${parseFloat(item.subtotal || 0).toFixed(2)}</td>
+                    </tr>`;
+                });
+            } catch (e) {
+                console.error("Error al parsear detalles:", e);
+                lista.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-400">Error al cargar los productos</td></tr>';
+                filasHTML = '<tr><td colspan="4" style="text-align:center; border:1px solid #999; padding:6px;">Error al cargar</td></tr>';
+            }
+
+
+
+
+
+
+            const zonaImp = document.getElementById('zonaImpresionGlobal');
+            zonaImp.innerHTML = `
+                <div id="printContent" style="font-family: Arial, sans-serif; padding: 10px;">
+                    <div style="text-align:center; margin-bottom:15px;">
+                        <h2 style="margin:0; font-size:18px; font-weight:900; letter-spacing:-0.5px; color: #000;">STC Services</h2>
+                        <p style="margin:2px 0; font-size:9px; text-transform:uppercase; letter-spacing:2px; color:#444;">Comprobante de Ingreso Almacén</p>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; border:1px solid #ccc; padding:8px 12px; margin-bottom:10px; font-size:11px;">
+                        <div>
+                            <strong>Fecha:</strong> ${fecha || 'N/A'}<br>
+                            <strong>Proveedor:</strong> ${prov || 'Sin Proveedor'}<br>
+                            <strong>NIT:</strong> ${nit || 'N/A'}
+                        </div>
+                        <div style="text-align:right;">
+                            <strong>Método de Pago:</strong><br>${metodo || 'No especificado'}
+                        </div>
+                    </div>
+
+                    <table style="width:100%; border-collapse:collapse; font-size:10px; page-break-inside:auto;">
+                        <thead>
+                            <tr>
+                                <th style="border:1px solid #999; padding:5px; text-align:left; background:#eee; font-size:9px; text-transform:uppercase;">Producto</th>
+                                <th style="border:1px solid #999; padding:5px; text-align:center; background:#eee; font-size:9px; text-transform:uppercase;">Cant.</th>
+                                <th style="border:1px solid #999; padding:5px; text-align:right; background:#eee; font-size:9px; text-transform:uppercase;">Costo Compra</th>
+                                <th style="border:1px solid #999; padding:5px; text-align:right; background:#eee; font-size:9px; text-transform:uppercase;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filasHTML}
+                        </tbody>
+                    </table>
+
+                    <table style="width:100%; border-collapse:collapse; margin-top:0;">
+                        <tr>
+                            <td style="border:1px solid #999; padding:8px 6px; text-align:right; font-weight:bold; font-size:11px; text-transform:uppercase;">Total Compra:</td>
+                            <td style="border:1px solid #999; padding:8px 6px; text-align:right; font-weight:bold; font-size:14px; font-family:monospace; width:120px;">Bs. ${total || '0,00'}</td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+        }
+
+        function verDetalleAgrupado(btn) {
+            prepararDatosCompra(btn);
+            abrirModal('modalDetalleCompra');
+        }
+
+        function imprimirAgrupado(btn) {
+            prepararDatosCompra(btn);
+
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        function previsualizarProducto(id, nombre, sn, cat, stock, compra, ref, venta, desc, prov, nit) {
+            document.getElementById('prvNombre').innerText = nombre;
+            document.getElementById('prvCategoria').innerText = cat || 'General';
+            document.getElementById('prvPrecioCompra').innerText = 'Bs. ' + parseFloat(compra).toLocaleString('es-BO', {minimumFractionDigits:2});
+            document.getElementById('prvPrecioRef').innerText = 'Bs. ' + parseFloat(ref).toLocaleString('es-BO', {minimumFractionDigits:2});
+            document.getElementById('prvPrecioVenta').innerText = 'Bs. ' + parseFloat(venta).toLocaleString('es-BO', {minimumFractionDigits:2});
+            document.getElementById('prvDescripcion').innerText = desc || 'Sin descripción';
+            
+            abrirModal('modalPreview');
+        }
+
+        function imprimirProducto(id, nombre, sn, cat, stock, compra, ref, venta, desc, prov, nit) {
+            previsualizarProducto(id, nombre, sn, cat, stock, compra, ref, venta, desc, prov, nit);
+            const zonaImp = document.getElementById('zonaImpresionGlobal');
+            zonaImp.innerHTML = `
+                <div style="font-family: 'Segoe UI', sans-serif; padding: 20px; border: 2px solid #333; border-radius: 10px;">
+                    <h2 style="text-align:center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;">Etiqueta de Producto</h2>
+                    ${document.getElementById('ticketProducto').innerHTML}
+                </div>
+            `;
+            setTimeout(() => {
+                window.print();
+            }, 50);
+        }
+
+        function reimprimirModal() {  }
+
+        function abrirModal(id) {
+            const modal = document.getElementById(id);
+            const content = document.getElementById(id + 'Content');
+            modal.classList.remove('hidden');
+            modal.style.display = 'block';
+            modal.style.opacity = '1';
+            document.body.style.overflow = 'hidden';
+            void modal.offsetWidth;
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }
+
+        function cerrarModal(id) {
+            const modal = document.getElementById(id);
+            const content = document.getElementById(id + 'Content');
+            modal.style.opacity = '0';
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }, 300);
+        }
+    </script>
+    <style>
+        
+        @@page { 
+            margin: 1cm !important;
+            size: A4 portrait;
+        }
+
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+
+        @@media print {
+            
+
+            
+            html body > * {
+                display: none !important;
+            }
+
+            
+            #zonaImpresionGlobal {
+                display: block !important;
+                visibility: visible !important;
+                position: static !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+            }
+
+            
+            html body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                color: black !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                -webkit-print-color-adjust: economy !important;
+                print-color-adjust: economy !important;
+            }
+
+            
+            main, aside, nav, .sidebar, header, footer, 
+            .no-print, .custom-modal-overlay,
+            script, style, link {
+                display: none !important;
+                height: 0 !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            
+            #zonaImpresionGlobal .overflow-y-auto,
+            #zonaImpresionGlobal [class*="max-h-"],
+            #zonaImpresionGlobal [style*="max-height"],
+            #zonaImpresionGlobal [style*="overflow"] {
+                max-height: none !important;
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            
+            #zonaImpresionGlobal,
+            #zonaImpresionGlobal * {
+                color: black !important;
+                background: transparent !important;
+                border-color: #999 !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+                -webkit-print-color-adjust: economy !important;
+                print-color-adjust: economy !important;
+            }
+
+            
+            #zonaImpresionGlobal thead,
+            #zonaImpresionGlobal tfoot {
+                position: static !important;
+            }
+
+            
+            #zonaImpresionGlobal table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 10px !important;
+                table-layout: auto !important; 
+                page-break-inside: auto !important;
+            }
+
+            
+            #zonaImpresionGlobal thead {
+                display: table-header-group !important;
+                position: static !important;
+            }
+
+            
+            #zonaImpresionGlobal tfoot {
+                display: table-footer-group !important;
+                position: static !important;
+                border-top: 2px solid black !important;
+                visibility: visible !important;
+            }
+
+            
+            #zonaImpresionGlobal tbody {
+                display: table-row-group !important;
+            }
+
+            
+            #zonaImpresionGlobal tbody tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            
+            #zonaImpresionGlobal th,
+            #zonaImpresionGlobal td {
+                border: 1px solid #666 !important;
+                padding: 4px 6px !important;
+                text-align: left !important;
+                color: black !important;
+                background: white !important;
+                word-wrap: break-word !important;
+            }
+
+            #zonaImpresionGlobal th {
+                background-color: #eee !important;
+                font-weight: bold !important;
+                text-transform: uppercase !important;
+                font-size: 9px !important;
+            }
+
+            #zonaImpresionGlobal td {
+                font-size: 10px !important;
+            }
+
+            
+            #zonaImpresionGlobal tfoot tr {
+                border-top: 2px solid #000 !important;
+                background-color: #f8fafc !important; 
+            }
+
+            #zonaImpresionGlobal tfoot td {
+                font-weight: bold !important;
+                font-size: 11px !important;
+                color: black !important;
+                border-top: 2px solid black !important;
+            }
+
+            
+            .text-right { text-align: right !important; }
+            .text-center { text-align: center !important; }
+            .font-mono { font-family: monospace !important; }
+
+            
+            #zonaImpresionGlobal > div > .text-center,
+            #zonaImpresionGlobal > div > .grid {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+        }
+    </style>
+}

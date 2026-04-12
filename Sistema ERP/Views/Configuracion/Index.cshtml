@@ -1,0 +1,406 @@
+@model IEnumerable<Sistema_ERP.Models.ConfiguracionApi>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{ ViewData["Title"] = "Configuración del Sistema"; }
+
+<div class="max-w-6xl mx-auto space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Configuración del Sistema</h1>
+            <p class="text-slate-500 text-sm">Administra las llaves de API y los servidores de correo para notificaciones.</p>
+        </div>
+        <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2 flex items-center gap-2">
+            <i class="bi bi-shield-check text-indigo-400"></i>
+            <span class="text-xs text-indigo-200 font-medium">Panel Administrativo Seguro</span>
+        </div>
+    </div>
+
+    
+    <div class="flex border-b border-white/10 overflow-x-auto no-scrollbar">
+        @if ((await AuthorizationService.AuthorizeAsync(User, "GestionarCuentasApi")).Succeeded)
+        {
+            <button onclick="switchTab('apis')" id="btn-apis" class="px-6 py-3 text-sm font-medium border-b-2 border-indigo-500 text-white transition-all">
+                <i class="bi bi-geo-alt me-2"></i>Mapas y APIs
+            </button>
+        }
+        @if ((await AuthorizationService.AuthorizeAsync(User, "AdministrarSmtp")).Succeeded)
+        {
+            <button onclick="switchTab('smtp')" id="btn-smtp" class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition-all">
+                <i class="bi bi-envelope-at me-2"></i>Correos (SMTP)
+            </button>
+        }
+
+    </div>
+
+    
+    <div id="tab-apis" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div class="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-4 flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                <i class="bi bi-info-circle-fill text-xl"></i>
+            </div>
+            <div>
+                <h4 class="text-indigo-200 font-bold text-sm">Guía de Configuración de Mapas</h4>
+                <div class="text-slate-400 text-xs leading-relaxed mt-2 space-y-2">
+                    <p>
+                        <i class="bi bi-1-circle me-1 text-indigo-400"></i>
+                        <strong>OpenStreetMap (OSM):</strong> Por defecto, el sistema usa este servicio gratuito e ilimitado. No requiere configuración.
+                    </p>
+                    <p>
+                        <i class="bi bi-2-circle me-1 text-indigo-400"></i>
+                        <strong>Google Maps (Opcional):</strong> Si decides usarlo, asegúrate de activar las librerías 
+                        <span class="text-indigo-300 font-mono">Geocoding API</span> y <span class="text-indigo-300 font-mono">Maps JavaScript API</span> 
+                        en tu Google Cloud Console para evitar errores de búsqueda.
+                    </p>
+                    <p class="text-[10px] italic text-slate-500">
+                        * Si dejas el campo vacío, el ERP volverá automáticamente a OSM sin interrumpir el servicio.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-google-api" class="max-w-2xl">
+            @if (ViewBag.GoogleApi != null)
+            {
+                
+                <div class="glass-card p-6 border-l-4 border-l-indigo-500 flex items-center justify-between group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                            <i class="bi bi-google text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Google Maps API Key</h3>
+                            <p class="text-xs text-slate-500 font-mono mt-1">
+                                AIzaSy... @(ViewBag.GoogleApi.ApiKey.Length > 8 ? ViewBag.GoogleApi.ApiKey.Substring(ViewBag.GoogleApi.ApiKey.Length - 4) : "****")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "GestionarCuentasApi")).Succeeded)
+                        {
+                            <button onclick="editarGoogleApi('@ViewBag.GoogleApi.ApiKey')" class="btn-secondary py-1.5 px-4 text-xs border-indigo-500/30 hover:bg-indigo-500/10">
+                                <i class="bi bi-pencil-square me-1"></i> Editar
+                            </button>
+                            <button onclick="eliminarApi(@ViewBag.GoogleApi.Idapi)" class="text-red-400 hover:text-red-300 transition-colors p-2" title="Eliminar LLave">
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                
+                <div class="glass-card p-6 border-l-4 border-l-indigo-500 animate-in fade-in zoom-in duration-300">
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="bi bi-plus-circle text-indigo-400"></i> Registrar Google Maps API
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="form-label text-xs uppercase tracking-wider text-slate-400">Pega tu Clave de Google Maps</label>
+                            <div class="relative group mt-2">
+                                <input type="password" id="GoogleApiKey" class="form-input pr-10 focus:border-indigo-500 transition-all" 
+                                       placeholder="AIzaSy..." />
+                                <i class="bi bi-key absolute right-3 top-2.5 text-slate-500"></i>
+                            </div>
+                        </div>
+                        <button onclick="guardarGoogleApi()" class="btn-primary w-full justify-center py-2.5 shadow-indigo-500/20 active:scale-95 transition-transform">
+                            <i class="bi bi-save2 me-2"></i> Guardar y Activar
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        
+        <div class="glass-card p-5 border border-white/5 opacity-60">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-emerald-200 uppercase tracking-tighter">OpenStreetMap Activo</h4>
+                    <p class="text-[10px] text-slate-500">Servicio gratuito configurado automáticamente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="tab-smtp" class="hidden space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                <i class="bi bi-envelope-check-fill text-xl"></i>
+            </div>
+            <div>
+                <h4 class="text-emerald-200 font-bold text-sm">Guía de Notificaciones por Correo</h4>
+                <div class="text-slate-400 text-xs leading-relaxed mt-2 space-y-2">
+                    <p>
+                        <i class="bi bi-shield-lock me-1 text-emerald-400"></i>
+                        <strong>Seguridad:</strong> Para servicios como Gmail o Outlook, <strong>NO uses tu contraseña normal</strong>. 
+                        Debes generar una <a href="https://support.google.com/accounts/answer/185833" target="_blank" class="text-emerald-400 underline italic">"Contraseña de Aplicación"</a> de 16 caracteres.
+                    </p>
+                    <p>
+                        <i class="bi bi-layers me-1 text-emerald-400"></i>
+                        <strong>Prioridad:</strong> El sistema intentará enviar los correos usando todas las cuentas activas. 
+                        Si una falla, intentará con la siguiente para garantizar que el cliente reciba la notificación.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="glass-card p-6 lg:col-span-1 border-l-4 border-l-emerald-500">
+                <h3 class="text-lg font-bold text-white mb-4">Servidor SMTP</h3>
+                <form id="form-smtp" class="space-y-3">
+                    <input type="hidden" id="IdSmtp" value="0" />
+                    <input type="text" id="SmtpNombre" class="form-input" placeholder="Nombre Perfil (ej: Gmail Admin)" required />
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="text" id="SmtpHost" class="form-input col-span-2" placeholder="smtp.servidor.com" required />
+                        <input type="number" id="SmtpPort" class="form-input" placeholder="Port" value="587" />
+                    </div>
+                    <input type="email" id="SmtpEmail" class="form-input" placeholder="correo@ejemplo.com" required />
+                    <input type="password" id="SmtpPassword" class="form-input" placeholder="Contraseña de Aplicación" required />
+                    <div class="flex items-center justify-between py-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="SmtpSsl" checked class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-indigo-500" />
+                            <span class="text-xs text-slate-300">Habilitar SSL</span>
+                        </label>
+                        <input type="number" id="SmtpPrioridad" class="form-input w-20 text-center" value="1" title="Prioridad de envío" />
+                    </div>
+                    <button type="submit" class="btn-primary w-full justify-center py-2.5 bg-emerald-500 hover:bg-emerald-600 border-emerald-400 shadow-emerald-500/20">
+                        <i class="bi bi-check2-circle"></i> Guardar Servidor
+                    </button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-white font-bold">Cuentas SMTP Configuradas</h3>
+                    <p class="text-[10px] text-slate-500 italic uppercase">Envío Simultáneo Multi-SMTP Activo</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="lista-smpts">
+                    @foreach (var smtp in ViewBag.Smtps) {
+                        <div class="glass-card p-5 relative overflow-hidden group border border-emerald-500/10 hover:border-emerald-500/30 transition-all duration-300">
+                            
+                            <div class="absolute bottom-[-10px] right-[-10px] opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
+                                <i class="bi bi-envelope-at text-7xl text-emerald-500"></i>
+                            </div>
+
+                            <div class="relative z-10 flex flex-col h-full">
+                                
+                                <div class="flex justify-between items-center mb-4">
+                                     <span class="text-[10px] bg-emerald-500/10 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/20">PRIORIdaD @smtp.Prioridad</span>
+                                     <i class="bi bi-hdd-network text-emerald-500/30"></i>
+                                </div>
+
+                                
+                                <div class="text-center mb-5">
+                                    <h4 class="text-sm font-bold text-white mb-0.5">@smtp.NombrePerfil</h4>
+                                    <p class="text-[11px] text-slate-400 truncate px-2">@smtp.Email</p>
+                                    <p class="text-[10px] text-emerald-500/60 mt-1 font-mono">@smtp.Host:@smtp.Port</p>
+                                </div>
+
+                                
+                                <div class="flex justify-center gap-3 pt-2 border-t border-white/5">
+                                    @if ((await AuthorizationService.AuthorizeAsync(User, "AdministrarSmtp")).Succeeded)
+                                    {
+                                        <button onclick="probarSmtp(@smtp.IdSmtp, this)" class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all shadow-lg shadow-emerald-500/10" title="Verificar Conexión">
+                                            <i class="bi bi-send-check text-base"></i>
+                                        </button>
+                                        <button Data-smtp='@Json.Serialize(smtp)' onclick="editarSmtp(this)" class="w-9 h-9 rounded-xl bg-white/5 text-slate-400 flex items-center justify-center hover:bg-white/10 hover:text-white transition-all" title="Editar">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button onclick="eliminarSmtp(@smtp.IdSmtp)" class="w-9 h-9 rounded-xl bg-red-500/5 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all" title="Eliminar">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+@section Scripts {
+    <script>
+        function switchTab(tab) {
+            document.getElementById('tab-apis').classList.toggle('hidden', tab !== 'apis');
+            document.getElementById('tab-smtp').classList.toggle('hidden', tab !== 'smtp');
+            
+            document.getElementById('btn-apis').className = `px-6 py-3 text-sm font-medium border-b-2 transition-all ${tab === 'apis' ? 'border-indigo-500 text-white' : 'border-transparent text-slate-400'}`;
+            document.getElementById('btn-smtp').className = `px-6 py-3 text-sm font-medium border-b-2 transition-all ${tab === 'smtp' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-400'}`;
+        }
+
+        async function guardarGoogleApi() {
+            const keyInput = document.getElementById('GoogleApiKey');
+            const key = keyInput.value.trim();
+
+
+            if (!key.startsWith('AIza')) {
+                Swal.fire('Formato Inválido', 'La API Key de Google debe comenzar con "AIza".', 'warning');
+                return;
+            }
+            if (key.length < 30) {
+                Swal.fire('Muy Corta', 'La API Key parece incompleta (mínimo 30 caracteres).', 'warning');
+                return;
+            }
+
+            Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            const resp = await fetch('/Configuracion/GuardarGoogleApi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(key)
+            });
+            const Data = await resp.json();
+            if (Data.success) {
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: '¡Activado!', 
+                    text: 'Google Maps está listo para usarse.',
+                    showConfirmButton: false, 
+                    timer: 1500 
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', Data.message, 'error');
+            }
+        }
+
+        function editarGoogleApi(key) {
+            Swal.fire({
+                title: 'Editar API Key',
+                input: 'password',
+                inputValue: key,
+                inputLabel: 'Nueva Clave de Google Maps',
+                showCancelButton: true,
+                confirmButtonText: 'Actualizar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    if (!value || !value.startsWith('AIza') || value.length < 30) {
+                        return 'Por favor ingresa una API Key válida (debe empezar con AIza)';
+                    }
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('GoogleApiKey')?.setAttribute('value', result.value);
+
+                    const resp = await fetch('/Configuracion/GuardarGoogleApi', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(result.value)
+                    });
+                    if ((await resp.json()).success) location.reload();
+                }
+            });
+        }
+
+        async function eliminarApi(id) {
+            const result = await Swal.fire({
+                title: '¿Desactivar Google Maps?',
+                text: 'El sistema volverá a usar OpenStreetMap automáticamente.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Sí, desactivar'
+            });
+
+            if (result.isConfirmed) {
+                const resp = await fetch(`/Configuracion/EliminarApi?id=${id}`, { method: 'POST' });
+                if ((await resp.json()).success) location.reload();
+            }
+        }
+
+
+        function editarSmtp(btn) {
+            try {
+
+                const smtpJson = btn.getAttribute('Data-smtp');
+                const smtp = JSON.parse(smtpJson);
+
+                if (!smtp) return;
+
+                document.getElementById('IdSmtp').value = smtp.idSmtp || smtp.IdSmtp || 0;
+                document.getElementById('SmtpNombre').value = smtp.nombrePerfil || smtp.NombrePerfil || '';
+                document.getElementById('SmtpHost').value = smtp.host || smtp.Host || '';
+                document.getElementById('SmtpPort').value = smtp.port || smtp.Port || 587;
+                document.getElementById('SmtpEmail').value = smtp.email || smtp.Email || '';
+                document.getElementById('SmtpPassword').value = smtp.password || smtp.Password || '';
+                document.getElementById('SmtpSsl').checked = smtp.enableSsl !== undefined ? smtp.enableSsl : (smtp.EnableSsl || false);
+                document.getElementById('SmtpPrioridad').value = smtp.prioridad || smtp.Prioridad || 1;
+                
+
+                switchTab('smtp');
+
+
+                const form = document.getElementById('form-smtp');
+                form.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-4', 'ring-offset-slate-900');
+                setTimeout(() => {
+                    form.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-4', 'ring-offset-slate-900');
+                }, 1000);
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (e) {
+                console.error("Error al editar SMTP:", e);
+                Swal.fire('Error', 'No se pudieron cargar los Datos para editar.', 'error');
+            }
+        }
+
+        document.getElementById('form-smtp').onsubmit = async (e) => {
+            e.preventDefault();
+            const smtp = {
+                IdSmtp: parseInt(document.getElementById('IdSmtp').value),
+                NombrePerfil: document.getElementById('SmtpNombre').value,
+                Host: document.getElementById('SmtpHost').value,
+                Port: parseInt(document.getElementById('SmtpPort').value),
+                Email: document.getElementById('SmtpEmail').value,
+                Password: document.getElementById('SmtpPassword').value,
+                EnableSsl: document.getElementById('SmtpSsl').checked,
+                Prioridad: parseInt(document.getElementById('SmtpPrioridad').value),
+                Activo: true
+            };
+
+            const resp = await fetch('/Configuracion/GuardarSmtp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(smtp)
+            });
+            const Data = await resp.json();
+            if (Data.success) location.reload();
+            else Swal.fire('Error', Data.message, 'error');
+        };
+
+        async function probarSmtp(id, btn) {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin text-base"></i>';
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.disabled = true;
+
+            const resp = await fetch(`/Configuracion/ProbarSmtp?id=${id}`, { method: 'POST' });
+            const Data = await resp.json();
+            
+            btn.innerHTML = originalHtml;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.disabled = false;
+
+            if (!Data.success) {
+                Swal.fire('Fallo de Conexión', Data.message, 'error');
+            }
+        }
+
+        function eliminarSmtp(id) {
+            Swal.fire({ title: '¿Eliminar Servidor?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Sí, eliminar' }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await fetch(`/Configuracion/EliminarSmtp?id=${id}`, { method: 'POST' });
+                    location.reload();
+                }
+            });
+        }
+
+
+    </script>
+}

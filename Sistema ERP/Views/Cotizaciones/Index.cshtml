@@ -1,0 +1,402 @@
+@model IEnumerable<Sistema_ERP.Models.Cotizacione>
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{ ViewData["Title"] = "Cotizaciones"; }
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <span class="w-9 h-9 bg-indigo-600/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-file-earmark-text text-indigo-400 text-lg"></i>
+            </span>
+            Cotizaciones y Ventas
+        </h1>
+        <p class="text-slate-500 text-sm mt-1">Historial de documentos comerciales</p>
+    </div>
+    @if ((await AuthorizationService.AuthorizeAsync(User, "CrearVenta")).Succeeded)
+    {
+        <a asp-action="Nueva" class="btn-primary">
+            <i class="bi bi-plus-lg"></i> Nueva Cotización
+        </a>
+    }
+</div>
+
+<div class="glass-card p-6">
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-hash"></i> Nro. Venta / Cot.</label>
+            <input type="text" id="filtroOperacion" placeholder="Ej. VEN-0001" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-person"></i> Cliente</label>
+            <input type="text" id="filtroCliente" placeholder="Buscar cliente..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-person-vcard"></i> NIT / CI</label>
+            <input type="text" id="filtroNitCi" placeholder="Ej. 81234567" class="w-full bg-slate-900 border border-cyan-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-calendar-date"></i> Fecha</label>
+            <input type="date" id="filtroFecha" class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div>
+            <label class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1 block"><i class="bi bi-credit-card"></i> Tipo de Pago</label>
+            <input type="text" id="filtroPago" placeholder="Ej. Efectivo..." class="w-full bg-slate-900 border border-slate-700/50 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="limpiarFiltros()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-center gap-2 group">
+                <i class="bi bi-eraser-fill group-hover:rotate-12 transition-transform"></i>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <table class="w-full text-sm" id="tablaCotizaciones">
+            <thead>
+                <tr class="border-b border-slate-700/50">
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Venta</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Cliente</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Fecha</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Pago</th>
+                    <th class="text-left px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Estado</th>
+                    <th class="text-center px-5 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Acciones</th>
+                    <th style="display:none;">NIT_HIDDEN</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="table-row">
+                        <td class="px-5 py-3 font-mono text-indigo-400 font-bold">@(item.NroCorrelativo ?? "#" + item.IdCotizacion.ToString("D5"))</td>
+                        <td class="px-5 py-3 text-white">@item.IdClienteNavigation?.NombreRazonSocial</td>
+                        <td class="px-5 py-3 text-slate-400">@(item.Fecha?.ToString("dd/MM/yyyy HH:mm"))</td>
+                        <td class="px-5 py-3">
+                            @if (item.IdMetodoPagoNavigation != null)
+                            {
+                                <span class="bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">@item.IdMetodoPagoNavigation.NombreMetodo</span>
+                            }
+                            else
+                            {
+                                <span class="text-slate-500 italic text-xs">N/A</span>
+                            }
+                        </td>
+                        <td class="px-5 py-3 text-left">
+                            @if (item.Estado == "Realizado")
+                            {
+                                <span class="badge badge-green"><i class="bi bi-check-circle mr-1"></i>REALIZADO</span>
+                            }
+                            else if (item.Estado == "Pendiente")
+                            {
+                                <span class="badge badge-amber"><i class="bi bi-clock-history mr-1"></i>PENDIENTE</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-blue"><i class="bi bi-file-earmark-text mr-1"></i>COTIZADO</span>
+                            }
+                        </td>
+                        <td class="px-5 py-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="verDetalle(@item.IdCotizacion)" class="btn-info py-1.5 px-3 text-xs" title="Ver Detalles">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                @if (item.Estado == "Cotizado" && (await AuthorizationService.AuthorizeAsync(User, "EditarVenta")).Succeeded)
+                                {
+                                    <a href="/Cotizaciones/Editar/@item.IdCotizacion" class="btn-warning py-1.5 px-3 text-xs" title="Editar Cotización">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                }
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "ImprimirVenta")).Succeeded)
+                                {
+                                    <button onclick="imprimirDirecto(@item.IdCotizacion)" class="btn-secondary py-1.5 px-3 text-xs" title="Imprimir Comprobante">
+                                        <i class="bi bi-printer"></i>
+                                    </button>
+                                }
+                                @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarVenta")).Succeeded)
+                                {
+                                    <form asp-action="Eliminar" asp-route-id="@item.IdCotizacion" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar">
+                                            <i class="bi bi-trash-fill text-xs"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                        <td style="display:none;">@(item.IdClienteNavigation?.NitCi ?? "")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Modals {
+    
+    <div id="modalDetalle" class="modal-overlay hidden">
+        <div class="modal-backdrop" onclick="closeModal('modalDetalle')"></div>
+        <div class="modal-box max-w-2xl max-h-[90vh] overflow-y-auto" id="contenidoDetalle">
+            
+        </div>
+    </div>
+
+    
+    <div id="zonaImpresionGlobal" class="hidden"></div>
+}
+
+@section Scripts {
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <style>
+        .DataTables_wrapper .DataTables_paginate .paginate_button { color: #94a3b8 !important; }
+        .DataTables_wrapper .DataTables_paginate .paginate_button.current {
+            background: #4f46e5 !important; color: white !important; border: none; border-radius: 0.5rem;
+        }
+        .DataTables_length, .DataTables_filter { display: none !important; }
+        table.DataTable.no-footer { border-bottom: none; }
+        .DataTables_info { color: #64748b !important; padding-top: 1rem; }
+
+        @@media print {
+            
+            html body > *:not(#zonaImpresionGlobal) {
+                display: none !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+
+            
+            @@page {
+                size: portrait;
+                margin: 1cm;
+            }
+
+            
+            #zonaImpresionGlobal {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                background: white !important;
+                color: black !important;
+            }
+
+            
+            #zonaImpresionGlobal table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 10px !important;
+                table-layout: auto !important;
+                page-break-inside: auto !important;
+            }
+
+            
+            #zonaImpresionGlobal thead {
+                display: table-header-group !important;
+            }
+
+            
+            #zonaImpresionGlobal tbody tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            
+            #zonaImpresionGlobal th,
+            #zonaImpresionGlobal td {
+                border: 1px solid #999 !important;
+                padding: 6px 8px !important;
+                text-align: left !important;
+                color: black !important;
+                font-size: 10px !important;
+            }
+
+            #zonaImpresionGlobal th {
+                background-color: #f1f1f1 !important;
+                font-weight: bold !important;
+                text-transform: uppercase !important;
+            }
+
+            
+            .celda-total {
+                border: 1px solid #000 !important;
+                padding: 8px !important;
+                font-weight: bold !important;
+            }
+        }
+    </style>
+
+<script>
+    $(document).ready(function () {
+        var table = $('#tablaCotizaciones').DataTable({
+            "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json" },
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [
+                { "orderable": false, "targets": 5 },
+                { "visible": false, "targets": 6 }
+            ],
+            "dom": 't<"flex flex-col md:flex-row justify-between items-center mt-4 text-sm text-slate-400"ip>'
+        });
+
+        $('#filtroOperacion').on('keyup', function () {
+            var val = this.value.trim();
+            if (val) {
+                if (/^\d+$/.test(val)) {
+                    var regex = "(?:\\-|\\#)[0]*" + val + "\\b";
+                    table.column(0).search(regex, true, false).draw();
+                } else if (/^[A-Za-z]+-\d+$/.test(val)) {
+                    var parts = val.split('-');
+                    var regex = parts[0] + "\\-[0]*" + parts[1] + "\\b";
+                    table.column(0).search(regex, true, false).draw();
+                } else {
+                    table.column(0).search(val, false, true).draw();
+                }
+            } else {
+                table.column(0).search('', false, true).draw();
+            }
+        });
+
+        $('#filtroCliente').on('keyup', function () {
+            table.column(1).search(this.value).draw();
+        });
+
+        $('#filtroNitCi').on('keyup', function () { table.column(6).search(this.value).draw(); });
+
+        window.limpiarFiltros = function() {
+            $('#filtroCliente, #filtroNitCi, #filtroFecha, #filtroPago').val('');
+            table.search('').columns().search('').draw();
+        };
+
+        $('#filtroPago').on('keyup', function () {
+            table.column(3).search(this.value).draw();
+        });
+
+        $('#filtroFecha').on('change', function () {
+            var dateValue = this.value;
+            if (dateValue) {
+                var parts = dateValue.split('-');
+                var formattedDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+                table.column(2).search(formattedDate).draw();
+            } else {
+                table.column(2).search('').draw();
+            }
+        });
+    });
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    async function verDetalle(id) {
+        const res = await fetch(`/Cotizaciones/Detalle/${id}`);
+        if(res.ok) {
+            document.getElementById('contenidoDetalle').innerHTML = await res.text();
+            openModal('modalDetalle');
+        } else {
+            alert('Error al cargar detalles');
+        }
+    }
+
+    async function imprimirDirecto(id) {
+
+        const res = await fetch(`/Cotizaciones/DetalleJSON/${id}`);
+        if(!res.ok) {
+            alert('Error al obtener Datos para impresión');
+            return;
+        }
+        const Data = await res.json();
+
+
+        let filasHTML = '';
+        Data.detalles.forEach(item => {
+            filasHTML += `
+                <tr>
+                    <td style="border:1px solid #999; padding:4px 6px;">${item.nombre}</td>
+                    <td style="border:1px solid #999; padding:4px 6px; text-align:center;">${item.cant}</td>
+                    <td style="border:1px solid #999; padding:4px 6px; text-align:right;">${item.precio}</td>
+                    <td style="border:1px solid #999; padding:4px 6px; text-align:right; font-weight:bold;">${item.subtotal}</td>
+                </tr>
+            `;
+        });
+
+        const zonaImp = document.getElementById('zonaImpresionGlobal');
+        zonaImp.innerHTML = `
+            <div style="font-family: Arial, sans-serif; padding: 10px;">
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <div>
+                        <h2 style="margin:0; font-size:20px; font-weight:900;">STC <span style="color:#000;">SERVICES</span></h2>
+                        <p style="margin:0; font-size:9px; font-weight:bold; color:#000; text-transform:uppercase; letter-spacing:2px;">INNOVATE FORWARD</p>
+                    </div>
+                    <div style="text-align:right;">
+                        <h3 style="margin:0; font-size:16px; text-transform:uppercase;">${Data.tipo}</h3>
+                        <p style="margin:2px 0; font-size:12px;"><strong>Nº:</strong> ${Data.nro}</p>
+                        <p style="margin:2px 0; font-size:12px;"><strong>Fecha:</strong> ${Data.fecha}</p>
+                    </div>
+                </div>
+
+                
+                <div style="display:grid; grid-template-cols: 1fr 1fr; gap:20px; border:1px solid #ccc; padding:12px; margin-bottom:20px; font-size:11px;">
+                    <div>
+                        <p style="margin:0 0 4px; font-size:9px; font-weight:bold; color:#666; text-transform:uppercase;">CLIENTE / EMPRESA</p>
+                        <strong style="font-size:14px;">${Data.cliente}</strong>
+                        <p style="margin:4px 0 0;">NIT/CI: ${Data.nit}</p>
+                        <p style="margin:2px 0 0;">Dirección: ${Data.direccion}</p>
+                    </div>
+                    <div style="text-align:right;">
+                        <p style="margin:0 0 4px; font-size:9px; font-weight:bold; color:#666; text-transform:uppercase;">ESTADO Y PAGO</p>
+                        <p style="margin:0;"><strong>Estado:</strong> ${Data.estado.toUpperCase()}</p>
+                        <p style="margin:4px 0 0;"><strong>Método de Pago:</strong> ${Data.metodo}</p>
+                    </div>
+                </div>
+
+                
+                <table style="width:100%; border-collapse:collapse; margin-bottom:0;">
+                    <thead>
+                        <tr>
+                            <th style="border:1px solid #999; padding:5px; text-align:left; background:#f5f5f5;">Descripción del Item</th>
+                            <th style="border:1px solid #999; padding:5px; text-align:center; width:60px; background:#f5f5f5;">Cant.</th>
+                            <th style="border:1px solid #999; padding:5px; text-align:right; width:90px; background:#f5f5f5;">Precio Venta</th>
+                            <th style="border:1px solid #999; padding:5px; text-align:right; width:100px; background:#f5f5f5;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filasHTML}
+                    </tbody>
+                </table>
+
+                
+                <table style="width:100%; border-collapse:collapse; margin-top:0;">
+                    <tr>
+                        <td style="border:1px solid #999; padding:5px 8px; text-align:right; width: auto; font-size:10px;">SUBTOTAL:</td>
+                        <td style="border:1px solid #999; padding:5px 8px; text-align:right; width:100px; font-size:11px;">Bs. ${Data.subtotal}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #999; padding:5px 8px; text-align:right; font-size:10px;">I.V.A. (${Data.ivaPorcentaje}%):</td>
+                        <td style="border:1px solid #999; padding:5px 8px; text-align:right; font-size:11px;">Bs. ${Data.ivaMonto}</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #999; padding:8px; text-align:right; font-weight:bold; font-size:12px; background:#f9fafb;">TOTAL:</td>
+                        <td style="border:1px solid #999; padding:8px; text-align:right; font-weight:900; font-size:15px; font-family:monospace; background:#f9fafb;">Bs. ${Data.total}</td>
+                    </tr>
+                </table>
+
+                
+                <div style="margin-top:40px; text-align:center; font-size:10px; color:#666; border-top:1px solid #eee; padding-top:10px;">
+                    <p>Este documento es un comprobante de operación comercial generado por STC Services INNOVATE FORWARD.</p>
+                    <p>¡Gracias por su preferencia!</p>
+                </div>
+            </div>
+        `;
+
+
+        setTimeout(() => {
+            window.print();
+        }, 300);
+    }
+</script>
+}

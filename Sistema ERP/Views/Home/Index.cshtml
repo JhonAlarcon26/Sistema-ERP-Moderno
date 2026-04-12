@@ -1,0 +1,732 @@
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Dashboard";
+    
+    var hasCrearVenta = (await AuthorizationService.AuthorizeAsync(User, "CrearVenta")).Succeeded;
+    var hasVerCobros = (await AuthorizationService.AuthorizeAsync(User, "VerCobros")).Succeeded;
+    var hasCrearCompra = (await AuthorizationService.AuthorizeAsync(User, "CrearCompra")).Succeeded;
+    var hasVerAgenda = (await AuthorizationService.AuthorizeAsync(User, "VerAgenda")).Succeeded;
+    var hasVerClientes = (await AuthorizationService.AuthorizeAsync(User, "VerClientes")).Succeeded;
+}
+
+
+<div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900 via-slate-800 to-indigo-950 p-8 mb-8 border border-white/10 shadow-2xl">
+    <div class="absolute inset-0 bg-[url('Data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTAgMGgyMHYyMEgwem0xMCAxMGE1IDUgMCAxIdagMC0xMCA1IDUgMCAwIdagMCAxMHoiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-50"></div>
+    <div class="absolute right-0 top-0 w-1/2 h-full opacity-30 pointer-events-none">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full animate-[spin_60s_linear_infinite]">
+            <path fill="#4f46e5" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,81.6,-46.3C91.4,-33.5,98.1,-18,97.6,-2.8C97.1,12.4,89.5,27.3,79.9,40.1C70.3,52.9,58.8,63.6,45.4,70.9C32,78.2,16,82.1,0.6,81.1C-14.8,80.1,-29.6,74.2,-42.6,66.1C-55.6,58,-66.8,47.7,-75.4,35.2C-84,22.7,-90.1,8.1,-89.2,-6.1C-88.3,-20.3,-80.4,-34.1,-70.5,-45.1C-60.6,-56.1,-48.7,-64.3,-35.8,-70.8C-22.9,-77.3,-9,-82.1,3.4,-87.6C15.8,-93.1,30.5,-83.6,44.7,-76.4Z" transform="translate(100 100) scale(1.1)" />
+        </svg>
+    </div>
+    
+    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+            <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-emerald-200 tracking-tight mb-2">Bienvenido, @User.Identity?.Name</h1>
+            <p class="text-indigo-200/80 text-lg font-medium">Espero que tengas un excelente y productivo día.</p>
+        </div>
+        <div class="flex gap-4">
+            <div class="glass-card bg-white/5 border-white/10 p-4 rounded-2xl text-center min-w-[120px] backdrop-blur-xl">
+                <p class="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-1">Fecha</p>
+                <p class="text-xl font-black text-white">@DateTime.Today.ToString("dd MMM")</p>
+            </div>
+            <div class="glass-card bg-emerald-500/10 border-emerald-500/20 p-4 rounded-2xl text-center min-w-[120px] backdrop-blur-xl">
+                <p class="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-1">Visitas Hoy</p>
+                <p class="text-xl font-black text-emerald-300">@(ViewBag.VisitasHoy?.Count ?? 0)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    
+    @if (hasCrearVenta)
+    {
+        <a asp-controller="Cotizaciones" asp-action="Nueva" class="block glass-card p-6 border-t-4 border-indigo-500 hover:scale-105 transition-transform duration-300 relative overflow-hidden group border-x border-b border-white/5 cursor-pointer shadow-lg hover:shadow-indigo-500/20">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/10 rounded-full group-hover:bg-indigo-500/20 transition-colors"></div>
+            <div class="absolute bottom-4 right-4 opacity-30 select-none pointer-events-none w-20 h-12">
+                <svg viewBox="0 0 100 50" class="w-full h-full stroke-indigo-400 fill-none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M0 40 Q 15 30, 30 45 T 70 20 T 100 5" class="animate-[dash_3s_linear_infinite]" stroke-dasharray="200" stroke-dashoffset="200" />
+                </svg>
+            </div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center mb-4 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:-translate-y-1 transition-transform">
+                    <i class="bi bi-cart text-indigo-400 text-xl group-hover:animate-bounce"></i>
+                </div>
+                <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Cotizaciones</p>
+                <p class="text-white text-2xl font-black tracking-tight group-hover:text-indigo-300 transition-colors">Nueva Venta</p>
+            </div>
+        </a>
+    }
+    else
+    {
+        <div class="block glass-card p-6 border-t-4 border-slate-600 relative overflow-hidden group border-x border-b border-white/5 cursor-not-allowed opacity-60 grayscale">
+            <div class="absolute inset-0 bg-slate-900/60 z-20 flex items-center justify-center backdrop-blur-[2px]">
+                <div class="flex flex-col items-center gap-2">
+                    <i class="bi bi-lock-fill text-slate-400 text-3xl"></i>
+                    <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Acceso Restringido</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-slate-500/20 flex items-center justify-center mb-4 border border-slate-500/30">
+                    <i class="bi bi-cart text-slate-400 text-xl"></i>
+                </div>
+                <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Cotizaciones</p>
+                <p class="text-slate-400 text-2xl font-black tracking-tight">Nueva Venta</p>
+            </div>
+        </div>
+    }
+
+    
+    @if (hasVerCobros)
+    {
+        <a asp-controller="Cobros" asp-action="Index" class="block glass-card p-6 border-t-4 border-rose-500 hover:scale-105 transition-transform duration-300 relative overflow-hidden group border-x border-b border-white/5 cursor-pointer shadow-lg hover:shadow-rose-500/20">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/10 rounded-full group-hover:bg-rose-500/20 transition-colors"></div>
+            <div class="absolute bottom-4 right-4 opacity-30 select-none pointer-events-none w-20 h-14 flex items-end gap-1">
+                <div class="w-3 bg-rose-400 rounded-t-sm animate-[hGrow_1.5s_ease-out_infinite_alternate]" style="height:40%"></div>
+                <div class="w-3 bg-rose-400 rounded-t-sm animate-[hGrow_1.5s_ease-out_infinite_alternate_0.2s]" style="height:60%"></div>
+                <div class="w-3 bg-rose-400 rounded-t-sm animate-[hGrow_1.5s_ease-out_infinite_alternate_0.4s]" style="height:80%"></div>
+                <div class="w-3 bg-rose-400 rounded-t-sm animate-[hGrow_1.5s_ease-out_infinite_alternate_0.6s]" style="height:100%"></div>
+            </div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-rose-500/20 flex items-center justify-center mb-4 border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.2)] group-hover:-translate-y-1 transition-transform">
+                    <i class="bi bi-cash-coin text-rose-400 text-xl group-hover:scale-110 transition-transform"></i>
+                </div>
+                <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Deudas y Saldos</p>
+                <p class="text-white text-2xl font-black tracking-tight group-hover:text-rose-300 transition-colors">Cobranzas</p>
+            </div>
+        </a>
+    }
+    else
+    {
+        <div class="block glass-card p-6 border-t-4 border-slate-600 relative overflow-hidden group border-x border-b border-white/5 cursor-not-allowed opacity-60 grayscale">
+            <div class="absolute inset-0 bg-slate-900/60 z-20 flex items-center justify-center backdrop-blur-[2px]">
+                <div class="flex flex-col items-center gap-2">
+                    <i class="bi bi-lock-fill text-slate-400 text-3xl"></i>
+                    <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Acceso Restringido</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-slate-500/20 flex items-center justify-center mb-4 border border-slate-500/30">
+                    <i class="bi bi-cash-coin text-slate-400 text-xl"></i>
+                </div>
+                <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Deudas y Saldos</p>
+                <p class="text-slate-400 text-2xl font-black tracking-tight">Cobranzas</p>
+            </div>
+        </div>
+    }
+
+    
+    @if (hasCrearCompra)
+    {
+        <a asp-controller="Compras" asp-action="NuevaCompra" class="block glass-card p-6 border-t-4 border-emerald-500 hover:scale-105 transition-transform duration-300 relative overflow-hidden group border-x border-b border-white/5 cursor-pointer shadow-lg hover:shadow-emerald-500/20">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full group-hover:bg-emerald-500/20 transition-colors"></div>
+            <div class="absolute bottom-4 right-4 opacity-30 select-none pointer-events-none w-14 h-14">
+                <svg viewBox="0 0 32 32" class="w-full h-full -rotate-90 group-hover:animate-spin" style="animation-duration: 4s;">
+                    <circle r="16" cx="16" cy="16" fill="#10b981" opacity="0.3"></circle>
+                    <circle r="16" cx="16" cy="16" fill="transparent" stroke="#10b981" stroke-width="32" stroke-dasharray="70 100" class="animate-[pieFill_2s_ease-out]"></circle>
+                </svg>
+            </div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-4 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:-translate-y-1 transition-transform">
+                    <i class="bi bi-truck text-emerald-400 text-xl group-hover:-translate-x-1 group-hover:translate-y-1 transition-transform"></i>
+                </div>
+                <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Inventario</p>
+                <p class="text-white text-2xl font-black tracking-tight group-hover:text-emerald-300 transition-colors">Nueva Compra</p>
+            </div>
+        </a>
+    }
+    else
+    {
+        <div class="block glass-card p-6 border-t-4 border-slate-600 relative overflow-hidden group border-x border-b border-white/5 cursor-not-allowed opacity-60 grayscale">
+            <div class="absolute inset-0 bg-slate-900/60 z-20 flex items-center justify-center backdrop-blur-[2px]">
+                <div class="flex flex-col items-center gap-2">
+                    <i class="bi bi-lock-fill text-slate-400 text-3xl"></i>
+                    <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Acceso Restringido</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-slate-500/20 flex items-center justify-center mb-4 border border-slate-500/30">
+                    <i class="bi bi-truck text-slate-400 text-xl"></i>
+                </div>
+                <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Stock</p>
+                <p class="text-slate-400 text-2xl font-black tracking-tight">Nueva Compra</p>
+            </div>
+        </div>
+    }
+
+    
+    @if (hasVerAgenda)
+    {
+        <a asp-controller="Agenda" asp-action="Index" class="block glass-card p-6 border-t-4 border-amber-500 hover:scale-105 transition-transform duration-300 relative overflow-hidden group border-x border-b border-white/5 cursor-pointer shadow-lg hover:shadow-amber-500/20">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full group-hover:bg-amber-500/20 transition-colors"></div>
+            <div class="absolute bottom-0 right-0 opacity-20 select-none pointer-events-none w-full h-16">
+                <svg viewBox="0 0 100 50" class="w-full h-full fill-amber-400" preserveAspectRatio="none">
+                    <path d="M0 50 L0 30 Q 25 10, 50 25 T 100 10 L100 50 Z" class="animate-[wave_3s_ease-in-out_infinite_alternate]" />
+                </svg>
+            </div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center mb-4 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] group-hover:-translate-y-1 transition-transform">
+                    <i class="bi bi-calendar2-week text-amber-400 text-xl group-hover:animate-pulse"></i>
+                </div>
+                <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Visitas</p>
+                <p class="text-white text-2xl font-black tracking-tight group-hover:text-amber-300 transition-colors">Agenda</p>
+            </div>
+        </a>
+    }
+    else
+    {
+        <div class="block glass-card p-6 border-t-4 border-slate-600 relative overflow-hidden group border-x border-b border-white/5 cursor-not-allowed opacity-60 grayscale">
+            <div class="absolute inset-0 bg-slate-900/60 z-20 flex items-center justify-center backdrop-blur-[2px]">
+                <div class="flex flex-col items-center gap-2">
+                    <i class="bi bi-lock-fill text-slate-400 text-3xl"></i>
+                    <span class="text-[10px] font-bold tracking-widest uppercase text-slate-400">Acceso Restringido</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-2xl bg-slate-500/20 flex items-center justify-center mb-4 border border-slate-500/30">
+                    <i class="bi bi-calendar2-week text-slate-400 text-xl"></i>
+                </div>
+                <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Visitas</p>
+                <p class="text-slate-400 text-2xl font-black tracking-tight">Agenda</p>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <div class="lg:col-span-2 space-y-6">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <i class="bi bi-bar-chart-line text-cyan-400"></i> Estadísticas y Reportes
+        </h2>
+        <div class="grid grid-cols-1 gap-6">
+            
+            @if (hasVerClientes)
+            {
+                <div class="glass-card p-6 border-t-4 border-amber-500 border-x border-b border-white/5 relative bg-slate-900/60 shadow-xl overflow-hidden">
+                    
+                    <div class="absolute -top-24 -left-24 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-md font-extrabold tracking-tight text-white flex items-center gap-2">
+                                <i class="bi bi-cash-coin text-amber-400"></i> Ganancia por Cliente
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1">Rentabilidad total generada por cada cliente (sin impuestos) </p>
+                        </div>
+                        <select id="rangoClientes" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-indigo-500 transition-colors" onchange="cargarClientesGrafica(this.value)">
+                            <option value="hoy" selected>Hoy (Horas)</option>
+                            <option value="1semana">Una semana</option>
+                            <option value="1mes">Un mes</option>
+                            <option value="1ano">Un año</option>
+                            <option value="2anos">2 años</option>
+                            <option value="3anos">3 años</option>
+                            <option value="4anos">4 años</option>
+                            <option value="5anos">5 años</option>
+                            <option value="global">Global</option>
+                        </select>
+                    </div>
+                    <div class="relative h-[240px] w-full overflow-x-auto overflow-y-hidden custom-scrollbar">
+                        <div id="wrapperClientes" style="height: 100%; min-width: 100%;">
+                            <canvas id="clientesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            
+            @if (hasVerCobros)
+            {
+                <div class="glass-card p-6 border-t-4 border-purple-500 border-x border-b border-white/5 relative bg-slate-900/60 shadow-xl overflow-hidden">
+                    
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-md font-extrabold tracking-tight text-white flex items-center gap-2">
+                                <i class="bi bi-cash-stack text-purple-400"></i> Estado de Cobranzas
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1">Saldos pendientes vs Retrasados</p>
+                        </div>
+                        <select id="rangoCobranzas" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-purple-500 transition-colors" onchange="cargarCobranzasGrafica(this.value)">
+                            <option value="hoy" selected>Hoy (Por Cliente)</option>
+                            <option value="1semana">Una semana</option>
+                            <option value="1mes">Un mes</option>
+                            <option value="1ano">Un año</option>
+                            <option value="2anos">2 años</option>
+                            <option value="3anos">3 años</option>
+                            <option value="4anos">4 años</option>
+                            <option value="5anos">5 años</option>
+                            <option value="global">Global</option>
+                        </select>
+                    </div>
+                    <div class="relative h-[240px] w-full overflow-x-auto overflow-y-hidden custom-scrollbar">
+                        <div id="wrapperCobranzas" style="height: 100%; min-width: 100%;">
+                            <canvas id="cobranzasChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            
+            @if (hasVerCobros)
+            {
+                <div class="glass-card p-6 border-t-4 border-emerald-500 border-x border-b border-white/5 relative bg-slate-900/60 shadow-xl overflow-hidden">
+                    
+                    <div class="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-md font-extrabold tracking-tight text-white flex items-center gap-2">
+                                <i class="bi bi-check-circle text-emerald-400"></i> Liquidación de Cobranzas
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1">Evolución de pagos recibidos</p>
+                        </div>
+                        <select id="rangoLiquidaciones" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-emerald-500 transition-colors" onchange="cargarLiquidacionesGrafica(this.value)">
+                            <option value="hoy" selected>Hoy</option>
+                            <option value="1semana">Una semana</option>
+                            <option value="1mes">Un mes</option>
+                            <option value="1ano">Un año</option>
+                            <option value="2anos">2 años</option>
+                            <option value="3anos">3 años</option>
+                            <option value="4anos">4 años</option>
+                            <option value="5anos">5 años</option>
+                            <option value="global">Global</option>
+                        </select>
+                    </div>
+                    <div class="relative h-[240px] w-full overflow-x-auto overflow-y-hidden custom-scrollbar">
+                        <div id="wrapperLiquidaciones" style="height: 100%; min-width: 100%;">
+                            <canvas id="liquidacionesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    
+    <div class="space-y-6">
+        
+        @if (hasVerAgenda)
+        {
+            <div class="glass-card p-0 overflow-hidden border-t-4 border-indigo-500 border-x border-b border-white/5 flex flex-col h-full min-h-[500px]">
+                <div class="p-6 pb-4 border-b border-white/5 bg-slate-800/20">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="bi bi-calendar-check text-indigo-400"></i> Visitas de Hoy
+                        </h2>
+                        <span class="bg-indigo-500 text-white px-2.5 py-0.5 rounded text-xs font-black shadow-lg shadow-indigo-500/30">@ViewBag.VisitasHoy?.Count</span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                    @if (ViewBag.VisitasHoy != null && ViewBag.VisitasHoy.Count > 0)
+                    {
+                        foreach (var v in ViewBag.VisitasHoy)
+                        {
+                            <div class="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl hover:border-indigo-500/40 hover:bg-slate-800 transition-all duration-300 group shadow-md hover:shadow-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 font-bold uppercase tracking-wider">@v.FechaVisita.ToString("HH:mm")</span>
+                                    <div class="flex gap-2 items-center">
+                                        <span class="text-[9px] font-black tracking-wider @colEstado(v.Estado)">@v.Estado.ToUpper()</span>
+                                        @if (v.Estado != "Finalizada" && v.Estado != "Finalizado")
+                                        {
+                                            <button onclick="finalizarTareaDashboard(@v.IdVisita)" class="w-6 h-6 rounded bg-emerald-500/10 flex items-center justify-center text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all group/btn shadow hover:shadow-emerald-500/50" title="Finalizar">
+                                                <i class="bi bi-check2 text-xs"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                                <h4 class="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">@v.IdClienteNavigation?.NombreRazonSocial</h4>
+                                <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">@v.Descripcion</p>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="py-16 text-center h-full flex flex-col items-center justify-center">
+                            <div class="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 border border-slate-700 shadow-inner">
+                                <i class="bi bi-cup-hot text-slate-500 text-2xl"></i>
+                            </div>
+                            <p class="text-sm text-slate-400 font-medium">Agenda libre para hoy.</p>
+                            <p class="text-xs text-slate-600 mt-1">No tienes visitas programadas.</p>
+                        </div>
+                    }
+                </div>
+                
+
+            </div>
+        }
+        else
+        {
+            <div class="glass-card p-0 overflow-hidden border-t-4 border-slate-600 border-x border-b border-white/5 flex flex-col h-full min-h-[500px] relative">
+                <div class="absolute inset-0 bg-slate-900/60 z-20 flex flex-col items-center justify-center backdrop-blur-[2px]">
+                    <i class="bi bi-lock-fill text-slate-400 text-5xl mb-4"></i>
+                    <h3 class="text-slate-300 font-bold mb-1">Módulo Restringido</h3>
+                    <p class="text-slate-500 text-xs text-center px-6">No tienes el permiso necesario para visualizar la agenda de visitas.</p>
+                </div>
+                <div class="p-6 pb-4 border-b border-white/5 bg-slate-800/10 opacity-30">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-slate-400 flex items-center gap-2">
+                            <i class="bi bi-calendar-check"></i> Visitas de Hoy
+                        </h2>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 opacity-30 grayscale pointer-events-none">
+                    <div class="py-16 text-center h-full flex flex-col items-center justify-center">
+                        <div class="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 border border-slate-700 shadow-inner">
+                            <i class="bi bi-calendar-x text-slate-500 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    string colEstado(string e) {
+        if(e == "Finalizada" || e == "Finalizado") return "text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded";
+        if(e == "Pendiente") return "text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded";
+        if(e == "Cancelada" || e == "Cancelado") return "text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded";
+        return "text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded";
+    }
+}
+
+@section Scripts {
+    <style>
+        
+        @@keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+        @@keyframes hGrow {
+            from { height: 10%; }
+        }
+        @@keyframes pieFill {
+            from { stroke-dasharray: 0 100; }
+            to { stroke-dasharray: 70 100; }
+        }
+        @@keyframes wave {
+            from { d: path("M0 50 L0 30 Q 25 10, 50 25 T 100 10 L100 50 Z"); }
+            to { d: path("M0 50 L0 10 Q 25 30, 50 15 T 100 30 L100 50 Z"); }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.6); }
+    </style>
+    <script>
+        function finalizarTareaDashboard(id) {
+            Swal.fire({
+                title: '¿Finalizar tarea?',
+                text: "Se marcará como completada y se notificará.",
+                icon: 'question',
+                background: '#1e293b',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, finalizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Home/FinalizarTarea', { id: id }, function(res) {
+                        if(res.success) {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+
+        let chartClientesInstance = null;
+        let chartCobranzasInstance = null;
+        let chartLiquidacionesInstance = null;
+
+
+        function cargarClientesGrafica(rango) {
+            fetch(`/Home/ObtenerDatosClientesGrafica?rango=${rango}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(!res.success) return;
+
+                    const ctxClientes = document.getElementById('clientesChart').getContext('2d');
+                    
+                    if (chartClientesInstance != null) {
+                        chartClientesInstance.destroy();
+                    }
+
+                    let gradienteGanancia = ctxClientes.createLinearGradient(0, 0, 0, 220);
+                    gradienteGanancia.addColorStop(0, 'rgba(245, 158, 11, 0.4)'); // Ámbar/Oro
+                    gradienteGanancia.addColorStop(1, 'rgba(245, 158, 11, 0)');
+
+                    chartClientesInstance = new Chart(ctxClientes, {
+                        type: 'line',
+                        data: {
+                            labels: res.labels,
+                            datasets: [{
+                                label: 'Ganancia Total (Bs.)',
+                                data: res.data,
+                                borderColor: '#f59e0b',
+                                backgroundColor: gradienteGanancia,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 6,
+                                pointBackgroundColor: '#f59e0b',
+                                pointBorderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { 
+                                    backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+                                    titleColor: '#fff', 
+                                    padding: 12, 
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return ' Ganancia: Bs. ' + context.parsed.y.toLocaleString();
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: { 
+                                    grid: { display: false },
+                                    ticks: { 
+                                        font: { size: 10, weight: 'bold' },
+                                        color: '#cbd5e1',
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                },
+                                y: { 
+                                    beginAtZero: true, 
+                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                    ticks: {
+                                        callback: function(value) { return 'Bs. ' + value; },
+                                        color: '#94a3b8'
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+
+                    const minWidth = res.labels.length * 120;
+                    document.getElementById('wrapperClientes').style.minWidth = Math.max(minWidth, window.innerWidth - 300) + 'px';
+                });
+        }
+
+
+        function cargarCobranzasGrafica(rango) {
+            fetch(`/Home/ObtenerDatosCobranzasGrafica?rango=${rango}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(!res.success) return;
+
+                    const ctxCobranzas = document.getElementById('cobranzasChart').getContext('2d');
+                    
+                    if (chartCobranzasInstance != null) {
+                        chartCobranzasInstance.destroy();
+                    }
+
+                    let gradCobPend = ctxCobranzas.createLinearGradient(0, 0, 0, 220);
+                    gradCobPend.addColorStop(0, 'rgba(168, 85, 247, 0.1)');
+                    gradCobPend.addColorStop(1, 'rgba(168, 85, 247, 0)');
+
+                    let gradCobVenc = ctxCobranzas.createLinearGradient(0, 0, 0, 220);
+                    gradCobVenc.addColorStop(0, 'rgba(239, 68, 68, 0.1)');
+                    gradCobVenc.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+                    chartCobranzasInstance = new Chart(ctxCobranzas, {
+                        type: 'line',
+                        data: {
+                            labels: res.labels,
+                            datasets: [
+                                {
+                                    label: 'Monto Pendiente',
+                                    data: res.pendientes,
+                                    borderColor: '#A855F7',
+                                    backgroundColor: 'transparent',
+                                    borderWidth: 3,
+                                    pointBackgroundColor: '#1e293b',
+                                    pointBorderColor: '#A855F7',
+                                    fill: false,
+                                    tension: 0.4
+                                },
+                                {
+                                    label: 'Monto Vencido/Retrasado (Rojo)',
+                                    data: res.vencidas,
+                                    borderColor: '#ef4444',
+                                    backgroundColor: 'transparent',
+                                    borderWidth: 3,
+                                    pointBackgroundColor: '#1e293b',
+                                    pointBorderColor: '#ef4444',
+                                    fill: false,
+                                    tension: 0.4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, padding: 20, font: { size: 10 } } },
+                                tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#fff', padding: 10, cornerRadius: 8 }
+                            },
+                            scales: {
+                                x: { 
+                                    grid: { display: false },
+                                    ticks: { 
+                                        maxRotation: 45,
+                                        minRotation: 45,
+                                        font: { size: 10 }
+                                    }
+                                },
+                                y: { 
+                                    beginAtZero: true, 
+                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                    ticks: { font: { size: 10 } }
+                                }
+                            }
+                        }
+                    });
+
+
+                    const minWidth = res.labels.length * 120;
+                    document.getElementById('wrapperCobranzas').style.minWidth = Math.max(minWidth, window.innerWidth - 300) + 'px';
+                });
+        }
+
+
+        function cargarComprasGrafica(rango) {
+            fetch(`/Home/ObtenerDatosComprasGrafica?rango=${rango}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(!res.success) return;
+
+                    const ctxCompras = document.getElementById('comprasChart').getContext('2d');
+                    
+                    if (chartComprasInstance != null) {
+                        chartComprasInstance.destroy();
+                    }
+
+                    let gradCompras = ctxCompras.createLinearGradient(0, 0, 0, 220);
+                    gradCompras.addColorStop(0, 'rgba(30, 58, 138, 0.4)'); // Azul Marino
+                    gradCompras.addColorStop(1, 'rgba(30, 58, 138, 0)');
+
+                    chartComprasInstance = new Chart(ctxCompras, {
+                        type: 'line',
+                        data: {
+                            labels: res.labels,
+                            datasets: [{
+                                label: 'Monto Compras (Bs.)',
+                                data: res.data,
+                                borderColor: '#1E3A8A',
+                                backgroundColor: gradCompras,
+                                borderWidth: 3,
+                                pointBackgroundColor: '#1e293b',
+                                pointBorderColor: '#1E3A8A',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#fff', padding: 10, cornerRadius: 8 }
+                            },
+                            scales: {
+                                x: { 
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { font: { size: 10 } } }
+                            }
+                        }
+                    });
+
+                    const minWidth = res.labels.length * 100;
+                    document.getElementById('wrapperCompras').style.minWidth = Math.max(minWidth, window.innerWidth - 300) + 'px';
+                });
+        }
+
+        function cargarLiquidacionesGrafica(rango) {
+            fetch(`/Home/ObtenerDatosLiquidacionesGrafica?rango=${rango}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(!res.success) return;
+
+                    const ctxLiq = document.getElementById('liquidacionesChart').getContext('2d');
+                    
+                    if (chartLiquidacionesInstance != null) {
+                        chartLiquidacionesInstance.destroy();
+                    }
+
+                    let gradLiq = ctxLiq.createLinearGradient(0, 0, 0, 220);
+                    gradLiq.addColorStop(0, 'rgba(16, 185, 129, 0.4)'); // Verde para Ventas
+                    gradLiq.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+                    chartLiquidacionesInstance = new Chart(ctxLiq, {
+                        type: 'line',
+                        data: {
+                            labels: res.labels,
+                            datasets: [{
+                                label: 'Monto Liquidado (Bs.)',
+                                data: res.data,
+                                borderColor: '#10b981',
+                                backgroundColor: gradLiq,
+                                borderWidth: 3,
+                                pointBackgroundColor: '#1e293b',
+                                pointBorderColor: '#10b981',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#fff', padding: 10, cornerRadius: 8 }
+                            },
+                            scales: {
+                                x: { 
+                                    grid: { display: false },
+                                    ticks: { font: { size: 10 } }
+                                },
+                                y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { font: { size: 10 } } }
+                            }
+                        }
+                    });
+
+                    const minWidth = res.labels.length * 100;
+                    document.getElementById('wrapperLiquidaciones').style.minWidth = Math.max(minWidth, window.innerWidth - 300) + 'px';
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+            Chart.defaults.font.family = "'Inter', sans-serif";
+
+
+            cargarClientesGrafica(document.getElementById('rangoClientes').value);
+            cargarCobranzasGrafica(document.getElementById('rangoCobranzas').value);
+            if(document.getElementById('rangoCompras')) cargarComprasGrafica(document.getElementById('rangoCompras').value);
+            cargarLiquidacionesGrafica(document.getElementById('rangoLiquidaciones').value);
+        });
+    </script>
+
+}

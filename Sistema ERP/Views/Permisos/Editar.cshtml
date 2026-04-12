@@ -1,0 +1,31 @@
+@model Sistema_ERP.Models.Permiso
+@{ ViewData["Title"] = "Editar Permiso"; }
+
+<div class="max-w-xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a asp-action="Index" class="text-slate-400 hover:text-white transition-colors"><i class="bi bi-arrow-left text-lg"></i></a>
+        <div>
+            <h1 class="text-xl font-bold text-white">Editar Permiso</h1>
+            <p class="text-slate-500 text-sm">Modifica el permiso <code class="text-amber-400">@Model.NombrePermiso</code></p>
+        </div>
+    </div>
+    <div class="glass-card p-6">
+        <form asp-action="Editar" method="post" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdPermiso" />
+            <div>
+                <label class="form-label">Nombre del Permiso</label>
+                <input asp-for="NombrePermiso" class="form-input font-mono" required />
+                <span asp-validation-for="NombrePermiso" class="text-red-400 text-xs mt-1 block"></span>
+            </div>
+            <div>
+                <label class="form-label">Descripción <span class="text-slate-500 font-normal">(opcional)</span></label>
+                <input asp-for="Descripcion" class="form-input" />
+            </div>
+            <div class="flex gap-3 pt-2">
+                <a asp-action="Index" class="btn-secondary flex-1 justify-center">Cancelar</a>
+                <button type="submit" class="btn-primary flex-1 justify-center"><i class="bi bi-check-lg"></i> Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
