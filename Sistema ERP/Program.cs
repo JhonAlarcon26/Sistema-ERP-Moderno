@@ -68,6 +68,21 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ErpInventarioContext>();
+        Sistema_ERP.Data.DbInitializer.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Un error ocurrió al inicializar la base de datos.");
+    }
+}
+
 
 var cultureInfo = new CultureInfo("es-BO");
 cultureInfo.NumberFormat.CurrencySymbol = "Bs.";
