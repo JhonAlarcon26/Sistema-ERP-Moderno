@@ -1,21 +1,26 @@
 # 🚀 Sistema ERP Moderno - STC Services
 
-Bienvenido al **Sistema ERP Moderno**, una solución integral para la gestión de inventarios, ventas, compras y agenda técnica. Diseñado con una estética premium y robustez técnica mediante **.NET 8** y **SQL Server**.
-
-![Captura del Sistema](https://img.shields.io/badge/Status-Desarrollo-green)
-![Tecnología](https://img.shields.io/badge/.NET-8.0-blue)
-![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+<div align="center">
+  <img src="Sistema%20ERP/wwwroot/img/preview.png" alt="Sistema ERP Dashboard" width="100%">
+  
+  [![Status](https://img.shields.io/badge/Status-v1.1.0--Stable-emerald?style=for-the-badge&logo=github)](https://github.com/JhonAlarcon26/Sistema-ERP-Moderno)
+  [![Tech](https://img.shields.io/badge/.NET-8.0-blue?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
+  [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
+  [![UX/UI](https://img.shields.io/badge/Design-Premium-indigo?style=for-the-badge)](https://github.com/JhonAlarcon26/Sistema-ERP-Moderno)
+</div>
 
 ---
 
 ## 🛠 Características Principales
 - **Gestión de Stock**: Control total de productos y servicios con categorías dinámicas.
-*   **Módulo de Ventas y Cotizaciones**: Flujo completo desde la cotización hasta la venta final.
+- **Módulo de Ventas y Cotizaciones**: Flujo completo desde la cotización hasta la venta final.
 - **Agenda Técnica**: Calendario interactivo para programar visitas y servicios.
 - **Finanzas**: Control de cobranzas y liquidaciones con Dashboards analíticos.
 - **Seguridad**: Sistema de Roles y Permisos granular (RBAC).
+- **UX Optimizada**: Inclusión de micro-animaciones y loaders de prevención de doble clic.
 
 ---
+
 
 ## 🐳 Despliegue Rápido con Docker
 
