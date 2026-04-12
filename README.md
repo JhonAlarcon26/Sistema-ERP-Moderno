@@ -50,6 +50,12 @@ Este sistema está completamente contenerizado para que puedas probarlo o desple
 
 El sistema estará disponible en `http://localhost:8080`.
 
+### 🔑 Acceso al Sistema
+Para ingresar al sistema por primera vez, utiliza las siguientes credenciales predefinidas:
+
+- **Usuario**: `admin`
+- **Contraseña**: `admin`
+
 ---
 
 ## 🔄 Cómo Actualizar
