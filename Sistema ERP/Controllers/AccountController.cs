@@ -107,7 +107,6 @@ namespace Sistema_ERP.Controllers
             return View();
         }
 
-   }
         [AllowAnonymous]
         public async Task<IActionResult> TestConnection()
         {
