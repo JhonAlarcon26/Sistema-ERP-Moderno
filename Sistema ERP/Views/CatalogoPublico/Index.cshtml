@@ -40,7 +40,7 @@
         </div>
         
         <div class="flex justify-end">
-            <button onclick="cerrarModalLink()" class="btn-secondary py-2 px-6">Cerrar</button>
+            <button onclick="cerrarModalLink()" class="btn-secondary py-2 px-6">Cancelar</button>
         </div>
     </div>
 </div>
@@ -161,7 +161,7 @@
                 
                 try {
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin text-lg"></i> <span>Generando...</span>';
+                    btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin text-lg"></i>';
                     
                     const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
                     const token = tokenElement ? tokenElement.value : '';

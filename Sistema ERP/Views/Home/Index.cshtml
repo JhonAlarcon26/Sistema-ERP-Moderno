@@ -428,10 +428,21 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
+                    const btn = event.currentTarget;
+                    const originalIcon = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin text-xs"></i>';
+
                     $.post('/Home/FinalizarTarea', { id: id }, function(res) {
                         if(res.success) {
                             location.reload();
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = originalIcon;
                         }
+                    }).fail(function() {
+                        btn.disabled = false;
+                        btn.innerHTML = originalIcon;
                     });
                 }
             });

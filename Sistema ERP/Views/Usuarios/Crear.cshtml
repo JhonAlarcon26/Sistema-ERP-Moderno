@@ -74,7 +74,7 @@
 
             <div class="flex gap-4 pt-4">
                 <a asp-action="Index" class="btn-secondary flex-1 justify-center py-3">Cancelar</a>
-                <button type="submit" class="btn-primary flex-1 justify-center py-3">
+                <button type="submit" class="btn-primary flex-1 justify-center py-3" onclick="const b=this; setTimeout(()=>{if(b.form.checkValidity()){b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i>'; b.disabled=true; b.form.submit();}},0)">
                     <i class="bi bi-person-plus mr-2"></i> Crear Usuario
                 </button>
             </div>

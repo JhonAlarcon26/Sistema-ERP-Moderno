@@ -63,7 +63,7 @@
             </div>
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="window.history.back()" class="btn-secondary flex-1 justify-center">Cancelar</button>
-                <button type="submit" class="btn-primary flex-1 justify-center">Guardar</button>
+                <button type="submit" class="btn-primary flex-1 justify-center" onclick="const b=this; setTimeout(()=>{if(b.form.checkValidity()){b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i>'; b.disabled=true; b.form.submit();}},0)">Guardar</button>
             </div>
         </form>
     </div>

@@ -97,7 +97,7 @@
 
             <div class="flex gap-3 pt-2">
                 <button type="button" onclick="window.history.back()" class="btn-secondary flex-1 justify-center">Cancelar</button>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-xl transition-all shadow-lg font-bold flex-1">Guardar</button>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-xl transition-all shadow-lg font-bold flex-1" onclick="const b=this; setTimeout(()=>{if(b.form.checkValidity()){b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i>'; b.disabled=true; b.form.submit();}},0)">Guardar</button>
             </div>
         </form>
     </div>

@@ -124,7 +124,7 @@
             {
                 <button id="btnEliminar" onclick="eliminarVisita(event)" class="bg-rose-600 hover:bg-rose-500 text-white px-5 py-2 rounded-xl font-bold text-sm border border-rose-700 shadow-lg shadow-rose-900/20 transition-all">Eliminar</button>
             }
-            <button onclick="cerrarDetalle()" class="px-5 py-2 rounded-xl bg-slate-800 text-white font-bold text-sm border border-slate-700 hover:bg-slate-700 transition-all">Cerrar</button>
+            <button onclick="cerrarDetalle()" class="px-5 py-2 rounded-xl bg-slate-800 text-white font-bold text-sm border border-slate-700 hover:bg-slate-700 transition-all">Cancelar</button>
         </div>
     </div>
 </div>
@@ -214,7 +214,7 @@
 
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i> Guardando...';
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i>';
 
 
             let [h, m] = horaRaw.split(':').map(Number);
@@ -302,7 +302,7 @@
             const originalText = btn.innerHTML;
             
             btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i> Procesando...';
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i>';
 
             $.post('/Agenda/CambiarEstado', { id: visitaActualId, nuevoEstado: nuevoEstado }, function(res) {
                 if(res.success) {
@@ -324,7 +324,7 @@
             const originalText = btn.innerHTML;
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i> Eliminando...';
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i>';
 
             $.post('/Agenda/Eliminar', { id: visitaActualId }, function(res) {
                 if(res.success) {

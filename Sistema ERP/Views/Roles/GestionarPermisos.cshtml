@@ -86,7 +86,7 @@
 
     <div class="flex items-center justify-between p-6 glass-card bg-slate-900/80 sticky bottom-6 z-10 shadow-2xl mt-8 border-t border-cyan-500/20">
         <a asp-action="Index" class="btn-secondary py-3 px-6">Cancelar</a>
-        <button type="submit" class="btn-digital-permissions">
+        <button type="submit" class="btn-digital-permissions" onclick="const b=this; setTimeout(()=>{if(b.form.checkValidity()){b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i> GUARDANDO...'; b.disabled=true; b.form.submit();}},0)">
             <i class="bi bi-save"></i> GUARDAR CAMBIOS
         </button>
     </div>

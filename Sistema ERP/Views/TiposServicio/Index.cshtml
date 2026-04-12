@@ -41,7 +41,7 @@
             <label class="form-label text-xs uppercase tracking-wider">Descripción</label>
             <input type="text" name="Descripcion" class="form-input" placeholder="Opcional: Detalles breves...">
         </div>
-        <button type="submit" class="btn-primary whitespace-nowrap"><i class="bi bi-save"></i> Guardar</button>
+        <button type="submit" class="btn-primary whitespace-nowrap" onclick="const b=this; setTimeout(()=>{if(b.form.checkValidity()){b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i>'; b.disabled=true; b.form.submit();}},0)"><i class="bi bi-save"></i> Guardar</button>
         <button type="button" onclick="document.getElementById('formNuevoTipoSrv').classList.add('hidden')" class="btn-secondary whitespace-nowrap">Cancelar</button>
     </form>
 </div>

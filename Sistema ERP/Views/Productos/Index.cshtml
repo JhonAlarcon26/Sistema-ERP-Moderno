@@ -190,7 +190,7 @@
         <div class="flex items-center justify-between px-6 py-4 border-t border-slate-700/50 bg-slate-800/30">
             <p class="text-slate-600 text-xs">STC Services · @DateTime.Now.Year</p>
             <div class="flex gap-2 w-full">
-                <button type="button" onclick="closeModal('modalPreview')" class="btn-secondary py-2 px-4 text-sm w-full block text-center">Cerrar</button>
+                <button type="button" onclick="closeModal('modalPreview')" class="btn-secondary py-2 px-4 text-sm w-full block text-center">Cancelar</button>
             </div>
         </div>
     </div>
@@ -292,7 +292,7 @@
 
                 <div class="mt-4 pt-4 border-t border-slate-700/50 flex gap-3 justify-end shrink-0">
                     <button type="button" onclick="closeModal('modalGestionProducto')" class="btn-secondary px-6">Cancelar</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-xl transition-all shadow-lg font-bold">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-xl transition-all shadow-lg font-bold" onclick="const b=this; setTimeout(()=>{if(b.form.checkValidity()){b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i>'; b.disabled=true; b.form.submit();}},0)">
                         Guardar
                     </button>
                 </div>

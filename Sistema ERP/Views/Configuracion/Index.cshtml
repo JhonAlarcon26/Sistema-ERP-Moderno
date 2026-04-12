@@ -167,8 +167,8 @@
                         </label>
                         <input type="number" id="SmtpPrioridad" class="form-input w-20 text-center" value="1" title="Prioridad de envío" />
                     </div>
-                    <button type="submit" class="btn-primary w-full justify-center py-2.5 bg-emerald-500 hover:bg-emerald-600 border-emerald-400 shadow-emerald-500/20">
-                        <i class="bi bi-check2-circle"></i> Guardar Servidor
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-lg shadow-emerald-900/40 active:scale-95 border border-emerald-500/20">
+                        <i class="bi bi-check2-circle text-lg"></i> Guardar Servidor
                     </button>
                 </form>
             </div>
@@ -239,7 +239,8 @@
         async function guardarGoogleApi() {
             const keyInput = document.getElementById('GoogleApiKey');
             const key = keyInput.value.trim();
-
+            const btn = event.currentTarget;
+            const originalHtml = btn.innerHTML;
 
             if (!key.startsWith('AIza')) {
                 Swal.fire('Formato Inválido', 'La API Key de Google debe comenzar con "AIza".', 'warning');
@@ -250,24 +251,33 @@
                 return;
             }
 
-            Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin me-2"></i> Guardando...';
 
-            const resp = await fetch('/Configuracion/GuardarGoogleApi', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(key)
-            });
-            const Data = await resp.json();
-            if (Data.success) {
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: '¡Activado!', 
-                    text: 'Google Maps está listo para usarse.',
-                    showConfirmButton: false, 
-                    timer: 1500 
-                }).then(() => location.reload());
-            } else {
-                Swal.fire('Error', Data.message, 'error');
+            try {
+                const resp = await fetch('/Configuracion/GuardarGoogleApi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(key)
+                });
+                const Data = await resp.json();
+                if (Data.success) {
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: '¡Activado!', 
+                        text: 'Google Maps está listo para usarse.',
+                        showConfirmButton: false, 
+                        timer: 1500 
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire('Error', Data.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Error de conexión', 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
             }
         }
 
@@ -352,6 +362,9 @@
 
         document.getElementById('form-smtp').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalHtml = btn.innerHTML;
+
             const smtp = {
                 IdSmtp: parseInt(document.getElementById('IdSmtp').value),
                 NombrePerfil: document.getElementById('SmtpNombre').value,
@@ -364,14 +377,27 @@
                 Activo: true
             };
 
-            const resp = await fetch('/Configuracion/GuardarSmtp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(smtp)
-            });
-            const Data = await resp.json();
-            if (Data.success) location.reload();
-            else Swal.fire('Error', Data.message, 'error');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin me-2"></i> Guardando...';
+
+            try {
+                const resp = await fetch('/Configuracion/GuardarSmtp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(smtp)
+                });
+                const Data = await resp.json();
+                if (Data.success) location.reload();
+                else {
+                    Swal.fire('Error', Data.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Error de conexión', 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
         };
 
         async function probarSmtp(id, btn) {

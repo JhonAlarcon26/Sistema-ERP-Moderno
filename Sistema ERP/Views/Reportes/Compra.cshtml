@@ -337,5 +337,18 @@
         filtroProducto.addEventListener('input', filterTable);
         filtroProveedor.addEventListener('input', filterTable);
         filtroFecha.addEventListener('input', filterTable);
+
+        $(document).ready(function() {
+            $('.btn-secondary[href*="Exportar"]').on('click', function() {
+                const btn = $(this);
+                const originalHtml = btn.html();
+                btn.addClass('pointer-events-none opacity-80');
+                btn.html('<i class="bi bi-hourglass-split animate-spin"></i>');
+                setTimeout(() => {
+                    btn.removeClass('pointer-events-none opacity-80');
+                    btn.html(originalHtml);
+                }, 4000);
+            });
+        });
     </script>
 }

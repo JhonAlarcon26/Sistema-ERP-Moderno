@@ -144,7 +144,7 @@
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-[500px]">
                         <a href="@Url.Action("Index", "Cotizaciones")" class="flex-1 bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-white font-bold py-4 rounded-2xl transition-all border border-slate-700/50 flex items-center justify-center gap-2">
-                            <i class="bi bi-x-lg"></i> Cerrar
+                            <i class="bi bi-x-lg"></i> Cancelar
                         </a>
                         @if ((await AuthorizationService.AuthorizeAsync(User, "CrearVenta")).Succeeded)
                         {
@@ -200,7 +200,7 @@
                     <button onclick="closeModal('modalOpcionesPago')" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all border border-slate-700">
                         Cancelar
                     </button>
-                    <button onclick="confirmarVentaFinal()" class="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2">
+                    <button id="btnConfirmarVentaFinal" onclick="confirmarVentaFinal()" class="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2">
                         <i class="bi bi-check2-all"></i> Finalizar Venta
                     </button>
                 </div>
@@ -243,8 +243,8 @@
                     <button onclick="closeModal('modalNuevoCliente')" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all">
                         Cancelar
                     </button>
-                    <button onclick="crearClienteRapido()" class="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all shadow-lg shadow-indigo-900/40">
-                        Guardar Cliente
+                    <button id="btnGuardarClienteRapido" onclick="crearClienteRapido()" class="flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all shadow-lg shadow-indigo-900/40 flex items-center justify-center gap-2">
+                        <i class="bi bi-person-plus"></i> Guardar Cliente
                     </button>
                 </div>
             </div>
@@ -362,10 +362,11 @@
             if (!validarStock()) return;
 
             isOperacionSubmitting = true;
-            const actionButtons = document.querySelectorAll('button[onclick*="sendOperacion"], button[onclick*="openModalPago"], button[onclick*="confirmarVentaFinal"]');
+            const actionButtons = document.querySelectorAll('button[onclick^="sendOperacion"], button[onclick^="openModalPago"]');
             actionButtons.forEach(btn => {
                 btn.disabled = true;
-                btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i>' + (btn.innerText || 'Procesando...');
+                btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i>';
             });
 
             const selEstadoPago = document.getElementById('selModalEstadoPago');
@@ -409,13 +410,22 @@
             } catch (err) {
                 console.error("Error en GuardarAPI:", err);
                 Swal.fire('Error', 'Error de conexión', 'error');
+            } finally {
                 isOperacionSubmitting = false;
-                actionButtons.forEach(btn => { btn.disabled = false; });
+                const actionButtons = document.querySelectorAll('button[onclick^="sendOperacion"], button[onclick^="openModalPago"]');
+                actionButtons.forEach(btn => { 
+                    btn.disabled = false; 
+                    if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
+                });
             }
         }
 
         function confirmarVentaFinal() {
-
+            const btn = document.getElementById('btnConfirmarVentaFinal');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i>';
+            }
             sendOperacion('Venta');
         }
 
@@ -436,10 +446,10 @@
             }
 
             isClienteSubmitting = true;
-            const saveBtn = event.currentTarget;
+            const saveBtn = document.getElementById('btnGuardarClienteRapido');
             const originalHtml = saveBtn.innerHTML;
             saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i>Guardando...';
+            saveBtn.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i>';
 
             try {
                 const res = await fetch('/Cotizaciones/CrearClienteAPI', {

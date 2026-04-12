@@ -47,6 +47,20 @@ El sistema estará disponible en `http://localhost:8080`.
 
 ---
 
+## 🔄 Cómo Actualizar
+
+Si ya tienes una versión instalada y quieres actualizar el sistema con las últimas mejoras de diseño y correcciones de errores, ejecuta estos comandos en tu terminal:
+
+```bash
+git pull origin main
+docker compose down
+docker compose up --build -d
+```
+*Este proceso descargará el código nuevo y reconstruirá los contenedores para aplicar los cambios sin perder tus datos de la base de datos.*
+
+
+---
+
 ## ☁️ Guía de Despliegue en VPS (Nginx + SSL)
 
 Para una instalación profesional en un VPS con **Certificado SSL (HTTPS)**, sigue estos pasos:

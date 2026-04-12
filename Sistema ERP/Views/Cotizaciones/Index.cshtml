@@ -115,7 +115,7 @@
                                 }
                                 @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarVenta")).Succeeded)
                                 {
-                                    <form asp-action="Eliminar" asp-route-id="@item.IdCotizacion" method="post" class="inline">
+                                     <form asp-action="Eliminar" asp-route-id="@item.IdCotizacion" method="post" class="inline" onsubmit="const b=this.querySelector('button'); b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i>'; b.disabled=true;">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar">
                                             <i class="bi bi-trash-fill text-xs"></i>

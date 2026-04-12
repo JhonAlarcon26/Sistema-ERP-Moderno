@@ -35,7 +35,7 @@
 
                 <div class="flex gap-4 pt-4">
                     <a asp-action="Index" class="btn-secondary flex-1 justify-center">Cancelar</a>
-                    <button type="submit" class="btn-primary flex-1 justify-center">Guardar</button>
+                    <button type="submit" class="btn-primary flex-1 justify-center" onclick="const b=this; setTimeout(()=>{if(b.form.checkValidity()){b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i>'; b.disabled=true; b.form.submit();}},0)">Guardar</button>
                 </div>
             </form>
         </div>

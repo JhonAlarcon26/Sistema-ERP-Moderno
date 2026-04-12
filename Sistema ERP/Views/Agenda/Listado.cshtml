@@ -164,6 +164,9 @@
                     btn.disabled = false;
                     btn.innerHTML = originalIcon;
                 }
+            }).fail(function() {
+                btn.disabled = false;
+                btn.innerHTML = originalIcon;
             });
         }
 

@@ -122,7 +122,7 @@
                                 </button>
                                 @if ((await AuthorizationService.AuthorizeAsync(User, "EliminarCompra")).Succeeded)
                                 {
-                                    <form asp-action="EliminarCompra" asp-route-id="@compra.IdReferencia" method="post" class="inline">
+                                    <form asp-action="EliminarCompra" asp-route-id="@compra.IdReferencia" method="post" class="inline" onsubmit="const b=this.querySelector('button'); b.innerHTML='<i class=\'bi bi-hourglass-split animate-spin\'></i>'; b.disabled=true;">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all" title="Eliminar Compra">
                                             <i class="bi bi-trash-fill text-xs"></i>
@@ -225,7 +225,7 @@
             </div>
             <div class="p-5 border-t border-slate-700 flex justify-end gap-3 bg-slate-800/50 rounded-b-2xl no-print flex-shrink-0">
                 <button onclick="cerrarModal('modalDetalleCompra')" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-xl transition-colors text-sm font-medium">
-                    Cerrar
+                    Cancelar
                 </button>
             </div>
         </div>
@@ -273,7 +273,7 @@
                 </div>
             </div>
             <div class="p-5 border-t border-slate-700 flex justify-end bg-slate-800/20 rounded-b-2xl flex-shrink-0">
-                <button type="button" onclick="cerrarModal('modalPreview')" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-xl transition-colors text-sm font-medium">Cerrar</button>
+                <button type="button" onclick="cerrarModal('modalPreview')" class="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-xl transition-colors text-sm font-medium">Cancelar</button>
             </div>
         </div>
     </div>
