@@ -41,7 +41,7 @@ Este sistema está completamente contenerizado para que puedas probarlo o desple
     ```bash
     cp .env.example .env
     ```
-    *Edita el archivo `.env` y cambia `MSSQL_SA_PASSWORD` por una clave segura.*
+    *Edita el archivo `.env` y cambia `SQLSERVER_SA_PASSWORD` por una clave segura.*
 
 3.  **Encender el Sistema**:
     ```bash
