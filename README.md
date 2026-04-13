@@ -33,13 +33,8 @@ Este sistema está completamente contenerizado para que puedas probarlo o instal
 1.  **Descargar el Proyecto en la Dirección que Elijas (Recomendado)**:
     Abre tu terminal y ubícate en la carpeta donde deseas guardar el proyecto. El sistema creará una carpeta llamada "Sistema-ERP-Moderno" ahí dentro:
     ```bash
-    # 1. Ve a la carpeta donde guardarás el proyecto (Ej: Descargas o Documentos)
     cd "C:\Ruta\De\Tu\Preferencia"
-    
-    # 2. Descarga el proyecto
     git clone https://github.com/JhonAlarcon26/Sistema-ERP-Moderno.git
-    
-    # 3. Ingresa a la carpeta del proyecto descargado
     cd Sistema-ERP-Moderno
     ```
 
