@@ -11,6 +11,7 @@ out/
 # Docker
 .env
 .docker/
+docker_data/
 
 # Archivos de sistema
 .DS_Store

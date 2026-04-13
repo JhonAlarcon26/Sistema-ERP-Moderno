@@ -9,7 +9,7 @@ services:
     ports:
       - "1433:1433"
     volumes:
-      - sql_data:/var/opt/mssql
+      - ./docker_data/sql:/var/opt/mssql
     networks:
       - erp-network
     restart: always
@@ -25,6 +25,8 @@ services:
       - ConnectionStrings__DefaultConnection=Server=db;Database=erp_inventario;User Id=Sa;Password=${MSSQL_SA_PASSWORD};Encrypt=False;TrustServerCertificate=True
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - ./docker_data/uploads:/app/wwwroot/uploads
     ports:
       - "8080:8080"
     networks:
@@ -34,6 +36,3 @@ services:
 networks:
   erp-network:
     driver: bridge
-
-volumes:
-  sql_data:

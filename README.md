@@ -31,7 +31,9 @@ Este sistema está completamente contenerizado para que puedas probarlo o desple
 
 ### Instrucciones de Instalación
 1.  **Clonar el Repositorio**:
+    Es recomendable descargar el proyecto dentro de tu carpeta de **Documentos** para mantener el orden en Windows 11:
     ```bash
+    cd Documents
     git clone https://github.com/JhonAlarcon26/Sistema-ERP-Moderno.git
     cd Sistema-ERP-Moderno
     ```
@@ -67,7 +69,7 @@ git pull origin main
 docker compose down
 docker compose up --build -d
 ```
-*Este proceso descargará el código nuevo y reconstruirá los contenedores para aplicar los cambios sin perder tus datos de la base de datos.*
+*Este proceso descargará el código nuevo y reconstruirá los contenedores para aplicar los cambios. Gracias al mapeo de carpetas, tus fotos subidas y tu base de datos se mantendrán seguras en la carpeta `docker_data`.*
 
 
 ---
