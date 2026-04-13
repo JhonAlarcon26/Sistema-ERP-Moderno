@@ -24,7 +24,7 @@
 
 ## 🐳 Despliegue Rápido con Docker
 
-Este sistema está completamente contenerizado para que puedas probarlo o desplegarlo en un **VPS** en cuestión de segundos.
+Este sistema está completamente contenerizado para que puedas probarlo o instalarlo en tu computadora en cuestión de segundos.
 
 ### Requisitos Previos
 - Tener instalado **Docker** y **Docker Compose**.
@@ -74,41 +74,11 @@ docker compose up --build -d
 
 ---
 
-## ☁️ Guía de Despliegue en VPS (Nginx + SSL)
-
-Para una instalación profesional en un VPS con **Certificado SSL (HTTPS)**, sigue estos pasos:
-
-### 1. Configurar Nginx como Proxy Inverso
-Instala Nginx y crea un archivo de configuración para tu sitio:
-```nginx
-server {
-    listen 80;
-    server_name tu-dominio.com;
-
-    location / {
-        proxy_pass http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection keep-alive;
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-### 2. Obtener Certificado SSL Gratuito (Let's Encrypt)
-Ejecuta los siguientes comandos:
-```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d tu-dominio.com
-```
-
----
 
 ## 👨‍💻 Tecnologías Utilizadas
 - **Backend**: ASP.NET Core 8.0 (MVC)
 - **Base de Datos**: Microsoft SQL Server 2022
-- **Frontend**: Vanilla CSS / JavaScript (Estética Premium)
+- **Frontend**: HTML , CSS y JavaScript (Estética Premium)
 - **Contenedores**: Docker & Docker Compose
 - **Reportes**: QuestPDF & ClosedXML
 
@@ -119,4 +89,4 @@ Este proyecto se distribuye bajo la licencia MIT. Siéntete libre de usarlo, mod
 
 ---
 *Desarrollado con ❤️ por Jhon Michael Alarcon Alaro (@JhonAlarcon26)*
-*Modernización y DevOps por Antigravity AI*
+*Modernización y DevOps *
