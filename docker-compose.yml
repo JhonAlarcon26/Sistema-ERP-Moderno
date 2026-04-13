@@ -9,7 +9,7 @@ services:
     ports:
       - "1433:1433"
     volumes:
-      - ${HOST_DATA_PATH:-./docker_data}/sql:/var/opt/mssql
+      - ${HOST_DATA_PATH:?Error: Debes configurar la ruta HOST_DATA_PATH en el archivo .env}/sql:/var/opt/mssql
     networks:
       - erp-network
     restart: always
@@ -26,7 +26,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
     volumes:
-      - ${HOST_DATA_PATH:-./docker_data}/uploads:/app/wwwroot/uploads
+      - ${HOST_DATA_PATH:?Error: Debes configurar la ruta HOST_DATA_PATH en el archivo .env}/uploads:/app/wwwroot/uploads
     ports:
       - "8080:8080"
     networks:

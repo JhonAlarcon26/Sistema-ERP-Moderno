@@ -46,7 +46,7 @@ Este sistema está completamente contenerizado para que puedas probarlo o instal
     ```
     *Abre el archivo `.env` en tu editor de código para configurarlo:*
     - Cambia `MSSQL_SA_PASSWORD` por una contraseña segura para tu base de datos.
-    - Opcionalmente, configura `HOST_DATA_PATH` con la dirección de la carpeta donde quieres que se guarden los datos del proyecto y la base de datos (Ej: `C:\DatosERP`). Si lo dejas como está (`./docker_data`), se crearán dentro de la carpeta del proyecto.
+    - OBLIGATORIAMENTE configura `HOST_DATA_PATH` escribiendo la ruta exacta de la carpeta donde quieras que se guarden permanentemente los datos del proyecto y la base de datos (Ej: `C:\DatosERP`). Si no lo llenas, el sistema no iniciará.
 
 3.  **Encender el Sistema**:
     ```bash
