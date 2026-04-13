@@ -30,13 +30,11 @@ Este sistema está completamente contenerizado para que puedas probarlo o instal
 - Tener instalado **Docker** y **Docker Compose**.
 
 ### Instrucciones de Instalación
-1.  **Clonar el Repositorio (OBLIGATORIO)**:
-    Abre tu terminal. **Es obligatorio** que especifiques manualmente la carpeta donde vas a guardar el proyecto. Copia la dirección de esa carpeta y pégala aquí usando el comando `cd`:
-
+1.  **Clonar el Repositorio**:
+    Abre tu terminal y ubícate en la carpeta donde deseas guardar el proyecto. Por ejemplo:
     ```bash
-    # EJEMPLO: Reemplaza con la dirección de tu carpeta, por ejemplo: cd "C:\MisProyectos"
-    cd "TU_DIRECCIÓN_DE_CARPETA_AQUÍ"
-    
+    # Reemplaza 'C:\MisProyectos' por la carpeta donde quieres alojar el proyecto
+    cd "C:\MisProyectos"
     git clone https://github.com/JhonAlarcon26/Sistema-ERP-Moderno.git
     cd Sistema-ERP-Moderno
     ```
