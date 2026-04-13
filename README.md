@@ -30,23 +30,18 @@ Este sistema está completamente contenerizado para que puedas probarlo o instal
 - Tener instalado **Docker** y **Docker Compose**.
 
 ### Instrucciones de Instalación
-1.  **Clonar el Repositorio**:
-    Abre tu terminal y ubícate en la carpeta donde deseas guardar el proyecto. Por ejemplo:
+1.  **Descargar el Proyecto en la Dirección que Elijas (Recomendado)**:
+    Abre tu terminal y ejecuta el siguiente comando. Simplemente reemplaza `"C:\Tu\Ruta\Ideal"` por la carpeta exacta donde quieres que el proyecto y sus bases de datos queden guardados permanentemente. El comando lo descargará y preparará todo ahí mismo:
     ```bash
-    # Reemplaza 'C:\MisProyectos' por la carpeta donde quieres alojar el proyecto
-    cd "C:\MisProyectos"
-    git clone https://github.com/JhonAlarcon26/Sistema-ERP-Moderno.git
-    cd Sistema-ERP-Moderno
+    git clone https://github.com/JhonAlarcon26/Sistema-ERP-Moderno.git "C:\Tu\Ruta\Ideal"
+    cd "C:\Tu\Ruta\Ideal"
     ```
 
-2.  **Configurar Credenciales y Ubicación de Datos**:
-    Copia el archivo de configuración de ejemplo:
+2.  **Configurar Credenciales**:
+    Copia el archivo de configuración de ejemplo para poder asignar la clave a tu base de datos (puedes cambiarla abriendo el archivo creado `.env`):
     ```bash
     cp .env.example .env
     ```
-    *Abre el archivo `.env` en tu editor de código para configurarlo:*
-    - Cambia `MSSQL_SA_PASSWORD` por una contraseña segura para tu base de datos.
-    - OBLIGATORIAMENTE configura `HOST_DATA_PATH` escribiendo la ruta exacta de la carpeta donde quieras que se guarden permanentemente los datos del proyecto y la base de datos (Ej: `C:\DatosERP`). Si no lo llenas, el sistema no iniciará.
 
 3.  **Encender el Sistema**:
     ```bash
