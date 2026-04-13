@@ -9,14 +9,14 @@ services:
     ports:
       - "1433:1433"
     volumes:
-      - ./docker_data/sql:/var/opt/mssql
+      - ${HOST_DATA_PATH:-./docker_data}/sql:/var/opt/mssql
     networks:
       - erp-network
     restart: always
 
   app:
     build:
-      context: ./Sistema ERP
+      context: "./Sistema ERP"
       dockerfile: Dockerfile
     container_name: erp-web-app
     depends_on:
@@ -26,7 +26,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
     volumes:
-      - ./docker_data/uploads:/app/wwwroot/uploads
+      - ${HOST_DATA_PATH:-./docker_data}/uploads:/app/wwwroot/uploads
     ports:
       - "8080:8080"
     networks:

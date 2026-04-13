@@ -30,20 +30,25 @@ Este sistema está completamente contenerizado para que puedas probarlo o instal
 - Tener instalado **Docker** y **Docker Compose**.
 
 ### Instrucciones de Instalación
-1.  **Clonar el Repositorio**:
-    Es recomendable descargar el proyecto dentro de tu carpeta de **Documentos** para mantener el orden en Windows 11:
+1.  **Clonar el Repositorio (OBLIGATORIO)**:
+    Abre tu terminal. **Es obligatorio** que especifiques manualmente la carpeta donde vas a guardar el proyecto. Copia la dirección de esa carpeta y pégala aquí usando el comando `cd`:
+
     ```bash
-    cd Documents
+    # EJEMPLO: Reemplaza con la dirección de tu carpeta, por ejemplo: cd "C:\MisProyectos"
+    cd "TU_DIRECCIÓN_DE_CARPETA_AQUÍ"
+    
     git clone https://github.com/JhonAlarcon26/Sistema-ERP-Moderno.git
     cd Sistema-ERP-Moderno
     ```
 
-2.  **Configurar Credenciales**:
-    Copia el archivo de ejemplo y edita tu contraseña de base de datos:
+2.  **Configurar Credenciales y Ubicación de Datos**:
+    Copia el archivo de configuración de ejemplo:
     ```bash
     cp .env.example .env
     ```
-    *Edita el archivo `.env` y cambia `SQLSERVER_SA_PASSWORD` por una clave segura.*
+    *Abre el archivo `.env` en tu editor de código para configurarlo:*
+    - Cambia `MSSQL_SA_PASSWORD` por una contraseña segura para tu base de datos.
+    - Opcionalmente, configura `HOST_DATA_PATH` con la dirección de la carpeta donde quieres que se guarden los datos del proyecto y la base de datos (Ej: `C:\DatosERP`). Si lo dejas como está (`./docker_data`), se crearán dentro de la carpeta del proyecto.
 
 3.  **Encender el Sistema**:
     ```bash
